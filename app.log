@@ -1,0 +1,370 @@
+Picked up JAVA_TOOL_OPTIONS: -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< com.example:flowable-demo >----------------------
+[INFO] Building flowable-demo 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.13:run (default-cli) > test-compile @ flowable-demo >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ flowable-demo ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ flowable-demo ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ flowable-demo ---
+[INFO] skip non existing resourceDirectory d:\demo\flowable-demo\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ flowable-demo ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:3.5.13:run (default-cli) < test-compile @ flowable-demo <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.13:run (default-cli) @ flowable-demo ---
+[INFO] Attaching agents: []
+Picked up JAVA_TOOL_OPTIONS: -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.13)
+
+2026-04-01T16:13:22.389+03:00  INFO 6744 --- [flowable-demo] [           main] c.e.f.FlowableDemoApplication            : Starting FlowableDemoApplication using Java 21.0.10 with PID 6744 (D:\demo\flowable-demo\target\classes started by Tseday in d:\demo\flowable-demo)
+2026-04-01T16:13:22.394+03:00  INFO 6744 --- [flowable-demo] [           main] c.e.f.FlowableDemoApplication            : No active profile set, falling back to 1 default profile: "default"
+2026-04-01T16:13:24.351+03:00  INFO 6744 --- [flowable-demo] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-01T16:13:24.386+03:00  INFO 6744 --- [flowable-demo] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 16 ms. Found 0 JPA repository interfaces.
+2026-04-01T16:13:25.400+03:00  INFO 6744 --- [flowable-demo] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-04-01T16:13:25.418+03:00  INFO 6744 --- [flowable-demo] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-01T16:13:25.420+03:00  INFO 6744 --- [flowable-demo] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.53]
+2026-04-01T16:13:25.533+03:00  INFO 6744 --- [flowable-demo] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-04-01T16:13:25.534+03:00  INFO 6744 --- [flowable-demo] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3029 ms
+2026-04-01T16:13:25.886+03:00  INFO 6744 --- [flowable-demo] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-04-01T16:13:25.986+03:00  INFO 6744 --- [flowable-demo] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.45.Final
+2026-04-01T16:13:26.044+03:00  INFO 6744 --- [flowable-demo] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-04-01T16:13:26.608+03:00  INFO 6744 --- [flowable-demo] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-01T16:13:26.722+03:00  INFO 6744 --- [flowable-demo] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-01T16:13:27.283+03:00  INFO 6744 --- [flowable-demo] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:flowable-db user=SA
+2026-04-01T16:13:27.286+03:00  INFO 6744 --- [flowable-demo] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-01T16:13:27.399+03:00  INFO 6744 --- [flowable-demo] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-01T16:13:28.026+03:00  INFO 6744 --- [flowable-demo] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-01T16:13:28.036+03:00  INFO 6744 --- [flowable-demo] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-01T16:13:28.222+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.s.b.e.EventRegistryAutoConfiguration : No deployment resources were found for autodeployment
+2026-04-01T16:13:28.657+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.s.SpringProcessEngineConfiguration   : Found 2 Engine Configurators in total:
+2026-04-01T16:13:28.657+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.s.SpringProcessEngineConfiguration   : class org.flowable.eventregistry.spring.configurator.SpringEventRegistryConfigurator (priority:100000)
+2026-04-01T16:13:28.657+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.s.SpringProcessEngineConfiguration   : class org.flowable.idm.engine.configurator.IdmEngineConfigurator (priority:150000)
+2026-04-01T16:13:28.657+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.s.SpringProcessEngineConfiguration   : Executing beforeInit() of class org.flowable.eventregistry.spring.configurator.SpringEventRegistryConfigurator (priority:100000)
+2026-04-01T16:13:28.753+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.s.SpringProcessEngineConfiguration   : Executing beforeInit() of class org.flowable.idm.engine.configurator.IdmEngineConfigurator (priority:150000)
+2026-04-01T16:13:30.494+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.s.SpringProcessEngineConfiguration   : Executing configure() of class org.flowable.eventregistry.spring.configurator.SpringEventRegistryConfigurator (priority:100000)
+2026-04-01T16:13:30.652+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.c.e.impl.db.CommonDbSchemaManager    : performing create on common with resource org/flowable/common/db/create/flowable.h2.create.common.sql
+2026-04-01T16:13:30.802+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.database                       : Set default schema name to PUBLIC
+2026-04-01T16:13:31.322+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Creating database history table with name: PUBLIC.FLW_EV_DATABASECHANGELOG
+2026-04-01T16:13:31.464+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Reading from PUBLIC.FLW_EV_DATABASECHANGELOG
+2026-04-01T16:13:31.486+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.snapshot                       : Creating snapshot
+2026-04-01T16:13:31.636+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.lockservice                    : Successfully acquired change log lock
+2026-04-01T16:13:31.636+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.command                        : Using deploymentId: 5049210629
+2026-04-01T16:13:31.639+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Reading from PUBLIC.FLW_EV_DATABASECHANGELOG
+Running Changeset: org/flowable/eventregistry/db/liquibase/flowable-eventregistry-db-changelog.xml::1::flowable
+2026-04-01T16:13:31.726+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Table FLW_EVENT_DEPLOYMENT created
+2026-04-01T16:13:31.730+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Table FLW_EVENT_RESOURCE created
+2026-04-01T16:13:31.736+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Table FLW_EVENT_DEFINITION created
+2026-04-01T16:13:31.736+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Index ACT_IDX_EVENT_DEF_UNIQ created
+2026-04-01T16:13:31.742+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Table FLW_CHANNEL_DEFINITION created
+2026-04-01T16:13:31.746+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Index ACT_IDX_CHANNEL_DEF_UNIQ created
+2026-04-01T16:13:31.747+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : ChangeSet org/flowable/eventregistry/db/liquibase/flowable-eventregistry-db-changelog.xml::1::flowable ran successfully in 31ms
+Running Changeset: org/flowable/eventregistry/db/liquibase/flowable-eventregistry-db-changelog.xml::2::flowable
+2026-04-01T16:13:31.766+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Columns TYPE_(varchar(255)) added to FLW_CHANNEL_DEFINITION
+2026-04-01T16:13:31.772+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Columns IMPLEMENTATION_(varchar(255)) added to FLW_CHANNEL_DEFINITION
+2026-04-01T16:13:31.772+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : ChangeSet org/flowable/eventregistry/db/liquibase/flowable-eventregistry-db-changelog.xml::2::flowable ran successfully in 15ms
+Running Changeset: org/flowable/eventregistry/db/liquibase/flowable-eventregistry-db-changelog.xml::3::flowable
+2026-04-01T16:13:31.842+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : Set Channel Definition type and implementation columns
+2026-04-01T16:13:31.843+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.changelog                      : ChangeSet org/flowable/eventregistry/db/liquibase/flowable-eventregistry-db-changelog.xml::3::flowable ran successfully in 64ms
+
+UPDATE SUMMARY
+Run:                          3
+Previously run:               0
+Filtered out:                 0
+-------------------------------
+Total change sets:            3
+
+2026-04-01T16:13:31.852+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.util                           : UPDATE SUMMARY
+2026-04-01T16:13:31.852+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.util                           : Run:                          3
+2026-04-01T16:13:31.852+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.util                           : Previously run:               0
+2026-04-01T16:13:31.852+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.util                           : Filtered out:                 0
+2026-04-01T16:13:31.852+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.util                           : -------------------------------
+2026-04-01T16:13:31.852+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.util                           : Total change sets:            3
+2026-04-01T16:13:31.858+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.util                           : Update summary generated
+2026-04-01T16:13:31.862+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.command                        : Update command completed successfully.
+Liquibase: Update has been successful. Rows affected: 3
+2026-04-01T16:13:31.866+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.lockservice                    : Successfully released change log lock
+2026-04-01T16:13:31.866+03:00  INFO 6744 --- [flowable-demo] [           main] liquibase.command                        : Command execution complete
+2026-04-01T16:13:33.405+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.e.impl.EventRegistryEngineImpl       : EventRegistryEngine default created
+2026-04-01T16:13:33.411+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.s.SpringProcessEngineConfiguration   : Executing configure() of class org.flowable.idm.engine.configurator.IdmEngineConfigurator (priority:150000)
+2026-04-01T16:13:33.434+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.i.engine.impl.db.IdmDbSchemaManager  : performing create on identity with resource org/flowable/idm/db/create/flowable.h2.create.identity.sql
+2026-04-01T16:13:33.456+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.idm.engine.impl.IdmEngineImpl        : IdmEngine default created
+2026-04-01T16:13:33.472+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.i.s.i.d.IdentityLinkDbSchemaManager  : performing create on identitylink with resource org/flowable/identitylink/service/db/create/flowable.h2.create.identitylink.sql
+2026-04-01T16:13:33.482+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.i.s.i.d.IdentityLinkDbSchemaManager  : performing create on identitylink.history with resource org/flowable/identitylink/service/db/create/flowable.h2.create.identitylink.history.sql
+2026-04-01T16:13:33.487+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.e.s.i.db.EntityLinkDbSchemaManager   : performing create on entitylink with resource org/flowable/entitylink/service/db/create/flowable.h2.create.entitylink.sql
+2026-04-01T16:13:33.492+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.e.s.i.db.EntityLinkDbSchemaManager   : performing create on entitylink.history with resource org/flowable/entitylink/service/db/create/flowable.h2.create.entitylink.history.sql
+2026-04-01T16:13:33.497+03:00  INFO 6744 --- [flowable-demo] [           main] e.s.i.d.EventSubscriptionDbSchemaManager : performing create on eventsubscription with resource org/flowable/eventsubscription/service/db/create/flowable.h2.create.eventsubscription.sql
+2026-04-01T16:13:33.502+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.t.s.impl.db.TaskDbSchemaManager      : performing create on task with resource org/flowable/task/service/db/create/flowable.h2.create.task.sql
+2026-04-01T16:13:33.508+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.t.s.impl.db.TaskDbSchemaManager      : performing create on task.history with resource org/flowable/task/service/db/create/flowable.h2.create.task.history.sql
+2026-04-01T16:13:33.522+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.v.s.impl.db.VariableDbSchemaManager  : performing create on variable with resource org/flowable/variable/service/db/create/flowable.h2.create.variable.sql
+2026-04-01T16:13:33.527+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.v.s.impl.db.VariableDbSchemaManager  : performing create on variable.history with resource org/flowable/variable/service/db/create/flowable.h2.create.variable.history.sql
+2026-04-01T16:13:33.536+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.j.s.impl.db.JobDbSchemaManager       : performing create on job with resource org/flowable/job/service/db/create/flowable.h2.create.job.sql
+2026-04-01T16:13:33.584+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.b.s.impl.db.BatchDbSchemaManager     : performing create on batch with resource org/flowable/batch/service/db/create/flowable.h2.create.batch.sql
+2026-04-01T16:13:33.586+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.e.impl.db.ProcessDbSchemaManager     : performing create on engine with resource org/flowable/db/create/flowable.h2.create.engine.sql
+2026-04-01T16:13:33.674+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.e.impl.db.ProcessDbSchemaManager     : performing create on history with resource org/flowable/db/create/flowable.h2.create.history.sql
+2026-04-01T16:13:33.690+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.engine.impl.ProcessEngineImpl        : ProcessEngine default created
+2026-04-01T16:13:33.706+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.e.impl.cmd.ValidateV5EntitiesCmd     : Total of v5 deployments found: 0
+2026-04-01T16:13:33.794+03:00  WARN 6744 --- [flowable-demo] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-01T16:13:34.369+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.j.s.i.a.AbstractAsyncExecutor        : Starting up the async job executor [org.flowable.spring.job.service.SpringAsyncExecutor] for engine bpmn
+2026-04-01T16:13:34.376+03:00  INFO 6744 --- [flowable-demo] [           main] o.f.s.c.DefaultAutoDeploymentStrategy    : Deploying resources [file [D:\demo\flowable-demo\target\classes\processes\cMS (2).bpmn20.xml]] for engine org.flowable.engine.impl.ProcessEngineImpl@494c452b deployment name hint SpringBootAutoDeployment
+2026-04-01T16:13:34.377+03:00  INFO 6744 --- [flowable-demo] [       Thread-4] o.f.j.s.i.a.ResetExpiredJobsRunnable     : starting to reset expired jobs for engine bpmn
+2026-04-01T16:13:34.378+03:00  INFO 6744 --- [flowable-demo] [       Thread-2] o.f.j.s.i.a.AcquireAsyncJobsDueRunnable  : starting to acquire async jobs due for engine bpmn
+2026-04-01T16:13:34.378+03:00  INFO 6744 --- [flowable-demo] [       Thread-3] o.f.j.s.i.a.AcquireTimerJobsRunnable     : starting to acquire async jobs due for engine bpmn
+2026-04-01T16:13:34.695+03:00  WARN 6744 --- [flowable-demo] [           main] o.f.engine.impl.bpmn.parser.BpmnParse    : Following warnings encountered during process validation: [Validation set: 'flowable-executable-process' | Problem: 'flowable-exclusive-gateway-seq-flow-without-conditions'] : Exclusive gateway has at least one outgoing sequence flow without a condition (which isn't the default one) - [Extra info : processDefinitionId = cMS | processDefinitionName = CMS |  | id = Exclusive_Databased_Gateway_60 |  | activityName = Sensetive ? | ] ( line: 154, column: 5)
+[Validation set: 'flowable-executable-process' | Problem: 'flowable-exclusive-gateway-seq-flow-without-conditions'] : Exclusive gateway has at least one outgoing sequence flow without a condition (which isn't the default one) - [Extra info : processDefinitionId = cMS | processDefinitionName = CMS |  | id = Exclusive_Databased_Gateway_50 |  | activityName = Investigation Desicsion ? | ] ( line: 195, column: 5)
+[Validation set: 'flowable-executable-process' | Problem: 'flowable-exclusive-gateway-seq-flow-without-conditions'] : Exclusive gateway has at least one outgoing sequence flow without a condition (which isn't the default one) - [Extra info : processDefinitionId = cMS | processDefinitionName = CMS |  | id = Exclusive_Databased_Gateway_45 |  | activityName = Investigation Required ? | ] ( line: 257, column: 5)
+[Validation set: 'flowable-executable-process' | Problem: 'flowable-exclusive-gateway-seq-flow-without-conditions'] : Exclusive gateway has at least one outgoing sequence flow without a condition (which isn't the default one) - [Extra info : processDefinitionId = cMS | processDefinitionName = CMS |  | id = Exclusive_Databased_Gateway_26 |  | activityName = Is Resolved ? | ] ( line: 333, column: 5)
+[Validation set: 'flowable-executable-process' | Problem: 'flowable-exclusive-gateway-seq-flow-without-conditions'] : Exclusive gateway has at least one outgoing sequence flow without a condition (which isn't the default one) - [Extra info : processDefinitionId = cMS | processDefinitionName = CMS |  | id = Exclusive_Databased_Gateway_22 |  | activityName = Is Resolved ? | ] ( line: 406, column: 5)
+[Validation set: 'flowable-executable-process' | Problem: 'flowable-exclusive-gateway-seq-flow-without-conditions'] : Exclusive gateway has at least one outgoing sequence flow without a condition (which isn't the default one) - [Extra info : processDefinitionId = cMS | processDefinitionName = CMS |  | id = Exclusive_Databased_Gateway_18 |  | activityName = Is Resolved ? | ] ( line: 479, column: 5)
+[Validation set: 'flowable-executable-process' | Problem: 'flowable-exclusive-gateway-seq-flow-without-conditions'] : Exclusive gateway has at least one outgoing sequence flow without a condition (which isn't the default one) - [Extra info : processDefinitionId = cMS | processDefinitionName = CMS |  | id = Exclusive_Databased_Gateway_6 |  | activityName = Channel ? | ] ( line: 560, column: 5)
+[Validation set: 'flowable-executable-process' | Problem: 'flowable-exclusive-gateway-seq-flow-without-conditions'] : Exclusive gateway has at least one outgoing sequence flow without a condition (which isn't the default one) - [Extra info : processDefinitionId = cMS | processDefinitionName = CMS |  | id = Exclusive_Databased_Gateway_70 |  | activityName = Is Satisified ? | ] ( line: 568, column: 5)
+
+2026-04-01T16:13:34.752+03:00  WARN 6744 --- [flowable-demo] [           main] f.e.i.b.d.ProcessDefinitionDiagramHelper : Error while generating process diagram, image will not be stored in repository
+
+java.lang.NullPointerException: Cannot invoke "org.flowable.bpmn.model.GraphicInfo.getX()" because "flowNodeGraphicInfo" is null
+	at org.flowable.image.impl.DefaultProcessDiagramGenerator.initProcessDiagramCanvas(DefaultProcessDiagramGenerator.java:984) ~[flowable-image-generator-7.0.0.jar:7.0.0]
+	at org.flowable.image.impl.DefaultProcessDiagramGenerator.generateProcessDiagram(DefaultProcessDiagramGenerator.java:622) ~[flowable-image-generator-7.0.0.jar:7.0.0]
+	at org.flowable.image.impl.DefaultProcessDiagramGenerator.generateDiagram(DefaultProcessDiagramGenerator.java:537) ~[flowable-image-generator-7.0.0.jar:7.0.0]
+	at org.flowable.image.impl.DefaultProcessDiagramGenerator.generateDiagram(DefaultProcessDiagramGenerator.java:566) ~[flowable-image-generator-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.bpmn.deployer.ProcessDefinitionDiagramHelper.createDiagramForProcessDefinition(ProcessDefinitionDiagramHelper.java:49) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.bpmn.deployer.BpmnDeployer.createAndPersistNewDiagramsIfNeeded(BpmnDeployer.java:132) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.bpmn.deployer.BpmnDeployer.deploy(BpmnDeployer.java:86) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.persistence.deploy.DeploymentManager.deploy(DeploymentManager.java:62) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.cmd.DeployCmd.executeDeploy(DeployCmd.java:135) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.cmd.DeployCmd.execute(DeployCmd.java:70) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.cmd.DeployCmd.execute(DeployCmd.java:45) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.CommandInvoker$1.run(CommandInvoker.java:67) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.CommandInvoker.executeOperation(CommandInvoker.java:140) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.CommandInvoker.executeOperations(CommandInvoker.java:114) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.CommandInvoker.execute(CommandInvoker.java:72) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.BpmnOverrideContextInterceptor.execute(BpmnOverrideContextInterceptor.java:26) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.interceptor.TransactionContextInterceptor.execute(TransactionContextInterceptor.java:53) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.interceptor.CommandContextInterceptor.execute(CommandContextInterceptor.java:105) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.spring.SpringTransactionInterceptor.lambda$execute$0(SpringTransactionInterceptor.java:57) ~[flowable-spring-common-7.0.0.jar:7.0.0]
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140) ~[spring-tx-6.2.17.jar:6.2.17]
+	at org.flowable.common.spring.SpringTransactionInterceptor.execute(SpringTransactionInterceptor.java:57) ~[flowable-spring-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.interceptor.LogInterceptor.execute(LogInterceptor.java:30) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.cfg.CommandExecutorImpl.execute(CommandExecutorImpl.java:56) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.cfg.CommandExecutorImpl.execute(CommandExecutorImpl.java:51) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.RepositoryServiceImpl.deploy(RepositoryServiceImpl.java:99) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.repository.DeploymentBuilderImpl.deploy(DeploymentBuilderImpl.java:212) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.spring.configurator.DefaultAutoDeploymentStrategy.deployResourcesInternal(DefaultAutoDeploymentStrategy.java:65) ~[flowable-spring-7.0.0.jar:7.0.0]
+	at org.flowable.spring.configurator.DefaultAutoDeploymentStrategy.deployResourcesInternal(DefaultAutoDeploymentStrategy.java:32) ~[flowable-spring-7.0.0.jar:7.0.0]
+	at org.flowable.common.spring.CommonAutoDeploymentStrategy.deployResources(CommonAutoDeploymentStrategy.java:94) ~[flowable-spring-common-7.0.0.jar:7.0.0]
+	at org.flowable.spring.SpringProcessEngineConfiguration.autoDeployResources(SpringProcessEngineConfiguration.java:132) ~[flowable-spring-7.0.0.jar:7.0.0]
+	at org.flowable.spring.SpringProcessEngineConfiguration.lambda$start$0(SpringProcessEngineConfiguration.java:231) ~[flowable-spring-7.0.0.jar:7.0.0]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596) ~[na:na]
+	at org.flowable.spring.SpringProcessEngineConfiguration.start(SpringProcessEngineConfiguration.java:228) ~[flowable-spring-7.0.0.jar:7.0.0]
+	at org.springframework.context.support.DefaultLifecycleProcessor.doStart(DefaultLifecycleProcessor.java:405) ~[spring-context-6.2.17.jar:6.2.17]
+	at org.springframework.context.support.DefaultLifecycleProcessor.doStart(DefaultLifecycleProcessor.java:394) ~[spring-context-6.2.17.jar:6.2.17]
+	at org.springframework.context.support.DefaultLifecycleProcessor$LifecycleGroup.start(DefaultLifecycleProcessor.java:586) ~[spring-context-6.2.17.jar:6.2.17]
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75) ~[na:na]
+	at org.springframework.context.support.DefaultLifecycleProcessor.startBeans(DefaultLifecycleProcessor.java:364) ~[spring-context-6.2.17.jar:6.2.17]
+	at org.springframework.context.support.DefaultLifecycleProcessor.onRefresh(DefaultLifecycleProcessor.java:310) ~[spring-context-6.2.17.jar:6.2.17]
+	at org.springframework.context.support.AbstractApplicationContext.finishRefresh(AbstractApplicationContext.java:1010) ~[spring-context-6.2.17.jar:6.2.17]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:631) ~[spring-context-6.2.17.jar:6.2.17]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.5.13.jar:3.5.13]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752) ~[spring-boot-3.5.13.jar:3.5.13]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439) ~[spring-boot-3.5.13.jar:3.5.13]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318) ~[spring-boot-3.5.13.jar:3.5.13]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361) ~[spring-boot-3.5.13.jar:3.5.13]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1350) ~[spring-boot-3.5.13.jar:3.5.13]
+	at com.example.flowable_demo.FlowableDemoApplication.main(FlowableDemoApplication.java:10) ~[classes/:na]
+
+2026-04-01T16:13:34.876+03:00  INFO 6744 --- [flowable-demo] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-04-01T16:13:34.894+03:00  INFO 6744 --- [flowable-demo] [           main] c.e.f.FlowableDemoApplication            : Started FlowableDemoApplication in 13.221 seconds (process running for 13.785)
+2026-04-01T16:14:54.462+03:00  INFO 6744 --- [flowable-demo] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-01T16:14:54.462+03:00  INFO 6744 --- [flowable-demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-01T16:14:54.465+03:00  INFO 6744 --- [flowable-demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+[EMAIL] sent via SMTP to=tsediteka1@gmail.com subject=Complaint Registered: CM-20260401162558-a848d2ad
+[SMS] Twilio send failed: Authentication Error - invalid username
+2026-04-01T16:26:05.153+03:00 ERROR 6744 --- [flowable-demo] [nio-8080-exec-7] o.f.c.e.impl.interceptor.CommandContext  : Error while closing command context
+
+java.lang.RuntimeException: SMS send failed
+	at com.example.flowable_demo.service.NotificationService.sendSms(NotificationService.java:83) ~[classes/:na]
+	at com.example.flowable_demo.delegate.GenerateTicketDelegate.execute(GenerateTicketDelegate.java:60) ~[classes/:na]
+	at org.flowable.engine.impl.delegate.invocation.JavaDelegateInvocation.invoke(JavaDelegateInvocation.java:35) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.delegate.invocation.DelegateInvocation.proceed(DelegateInvocation.java:32) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.delegate.invocation.DefaultDelegateInterceptor.handleInvocation(DefaultDelegateInterceptor.java:26) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.bpmn.behavior.ServiceTaskDelegateExpressionActivityBehavior.execute(ServiceTaskDelegateExpressionActivityBehavior.java:161) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.agenda.ContinueProcessOperation.executeActivityBehavior(ContinueProcessOperation.java:298) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.agenda.ContinueProcessOperation.executeSynchronous(ContinueProcessOperation.java:175) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.agenda.ContinueProcessOperation.continueThroughFlowNode(ContinueProcessOperation.java:125) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.agenda.ContinueProcessOperation.run(ContinueProcessOperation.java:88) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.AbstractEngineConfiguration.lambda$new$0(AbstractEngineConfiguration.java:195) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.CommandInvoker.executeOperation(CommandInvoker.java:130) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.CommandInvoker.executeOperations(CommandInvoker.java:114) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.CommandInvoker.execute(CommandInvoker.java:72) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.BpmnOverrideContextInterceptor.execute(BpmnOverrideContextInterceptor.java:26) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.interceptor.TransactionContextInterceptor.execute(TransactionContextInterceptor.java:53) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.interceptor.CommandContextInterceptor.execute(CommandContextInterceptor.java:105) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.spring.SpringTransactionInterceptor.lambda$execute$0(SpringTransactionInterceptor.java:57) ~[flowable-spring-common-7.0.0.jar:7.0.0]
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140) ~[spring-tx-6.2.17.jar:6.2.17]
+	at org.flowable.common.spring.SpringTransactionInterceptor.execute(SpringTransactionInterceptor.java:57) ~[flowable-spring-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.interceptor.LogInterceptor.execute(LogInterceptor.java:30) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.cfg.CommandExecutorImpl.execute(CommandExecutorImpl.java:56) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.cfg.CommandExecutorImpl.execute(CommandExecutorImpl.java:51) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.TaskServiceImpl.complete(TaskServiceImpl.java:223) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at com.example.flowable_demo.controller.ProcessController.completeTask(ProcessController.java:229) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590) ~[tomcat-embed-core-10.1.53.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.53.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:88) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:342) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:399) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1775) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:973) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+Caused by: com.twilio.exception.ApiException: Authentication Error - invalid username
+	at com.twilio.rest.api.v2010.account.MessageCreator.create(MessageCreator.java:573) ~[twilio-8.31.1.jar:na]
+	at com.twilio.rest.api.v2010.account.MessageCreator.create(MessageCreator.java:27) ~[twilio-8.31.1.jar:na]
+	at com.twilio.base.Creator.create(Creator.java:40) ~[twilio-8.31.1.jar:na]
+	at com.example.flowable_demo.service.NotificationService.sendSms(NotificationService.java:78) ~[classes/:na]
+	... 72 common frames omitted
+
+2026-04-01T16:26:05.197+03:00 ERROR 6744 --- [flowable-demo] [nio-8080-exec-7] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: java.lang.RuntimeException: SMS send failed] with root cause
+
+com.twilio.exception.ApiException: Authentication Error - invalid username
+	at com.twilio.rest.api.v2010.account.MessageCreator.create(MessageCreator.java:573) ~[twilio-8.31.1.jar:na]
+	at com.twilio.rest.api.v2010.account.MessageCreator.create(MessageCreator.java:27) ~[twilio-8.31.1.jar:na]
+	at com.twilio.base.Creator.create(Creator.java:40) ~[twilio-8.31.1.jar:na]
+	at com.example.flowable_demo.service.NotificationService.sendSms(NotificationService.java:78) ~[classes/:na]
+	at com.example.flowable_demo.delegate.GenerateTicketDelegate.execute(GenerateTicketDelegate.java:60) ~[classes/:na]
+	at org.flowable.engine.impl.delegate.invocation.JavaDelegateInvocation.invoke(JavaDelegateInvocation.java:35) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.delegate.invocation.DelegateInvocation.proceed(DelegateInvocation.java:32) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.delegate.invocation.DefaultDelegateInterceptor.handleInvocation(DefaultDelegateInterceptor.java:26) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.bpmn.behavior.ServiceTaskDelegateExpressionActivityBehavior.execute(ServiceTaskDelegateExpressionActivityBehavior.java:161) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.agenda.ContinueProcessOperation.executeActivityBehavior(ContinueProcessOperation.java:298) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.agenda.ContinueProcessOperation.executeSynchronous(ContinueProcessOperation.java:175) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.agenda.ContinueProcessOperation.continueThroughFlowNode(ContinueProcessOperation.java:125) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.agenda.ContinueProcessOperation.run(ContinueProcessOperation.java:88) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.AbstractEngineConfiguration.lambda$new$0(AbstractEngineConfiguration.java:195) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.CommandInvoker.executeOperation(CommandInvoker.java:130) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.CommandInvoker.executeOperations(CommandInvoker.java:114) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.CommandInvoker.execute(CommandInvoker.java:72) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.interceptor.BpmnOverrideContextInterceptor.execute(BpmnOverrideContextInterceptor.java:26) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.interceptor.TransactionContextInterceptor.execute(TransactionContextInterceptor.java:53) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.interceptor.CommandContextInterceptor.execute(CommandContextInterceptor.java:105) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.spring.SpringTransactionInterceptor.lambda$execute$0(SpringTransactionInterceptor.java:57) ~[flowable-spring-common-7.0.0.jar:7.0.0]
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140) ~[spring-tx-6.2.17.jar:6.2.17]
+	at org.flowable.common.spring.SpringTransactionInterceptor.execute(SpringTransactionInterceptor.java:57) ~[flowable-spring-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.interceptor.LogInterceptor.execute(LogInterceptor.java:30) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.cfg.CommandExecutorImpl.execute(CommandExecutorImpl.java:56) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.common.engine.impl.cfg.CommandExecutorImpl.execute(CommandExecutorImpl.java:51) ~[flowable-engine-common-7.0.0.jar:7.0.0]
+	at org.flowable.engine.impl.TaskServiceImpl.complete(TaskServiceImpl.java:223) ~[flowable-engine-7.0.0.jar:7.0.0]
+	at com.example.flowable_demo.controller.ProcessController.completeTask(ProcessController.java:229) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590) ~[tomcat-embed-core-10.1.53.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.17.jar:6.2.17]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.53.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.17.jar:6.2.17]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:138) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:88) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:342) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:399) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1775) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:973) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.53.jar:10.1.53]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+
