@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @Component("notificationDelegate")
@@ -24,8 +25,27 @@ public class NotificationDelegate implements JavaDelegate {
         String email = customer != null ? (String) customer.get("email") : null;
         String phone = customer != null ? (String) customer.get("phone") : null;
 
-        String message = "Your complaint " + ticketId + " has been registered. Thank you.";
-        String subject = "Complaint Received: " + ticketId;
+        String customerName = customer != null ? (String) customer.get("name") : "Valued Customer";
+        
+        // Professional notification message
+        String message = String.format(
+            "Dear %s,\n\n" +
+            "Good news! Your complaint %s has been processed and resolved.\n\n" +
+            "Resolution Details:\n" +
+            "- Ticket Number: %s\n" +
+            "- Resolution Date: %s\n\n" +
+            "We hope the resolution meets your expectations. If you have any questions or need further assistance, please don't hesitate to contact us.\n\n" +
+            "Thank you for your patience and for giving us the opportunity to address your concerns.\n\n" +
+            "Best regards,\n" +
+            "Customer Service Team\n" +
+            "Complaint Management System",
+            customerName,
+            ticketId,
+            ticketId,
+            LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"))
+        );
+        
+        String subject = "Complaint Resolved - Ticket #" + ticketId;
 
         if (email != null) {
             notificationService.sendEmail(email, subject, message);

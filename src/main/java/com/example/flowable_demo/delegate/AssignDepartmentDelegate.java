@@ -15,10 +15,39 @@ public class AssignDepartmentDelegate implements JavaDelegate {
         String category = complaint != null ? (String) complaint.get("category") : null;
 
         String assigned = "work-unit";
-        if ("HS".equalsIgnoreCase(category)) {
-            assigned = "service-quality";
-        } else if ("S".equalsIgnoreCase(category)) {
-            assigned = "audit-team";
+        
+        // Map meaningful categories to departments
+        if (category != null) {
+            switch (category.toLowerCase()) {
+                case "financial":
+                case "atm":
+                case "fraud":
+                case "loan":
+                    assigned = "audit-team";
+                    break;
+                case "technical":
+                case "account":
+                case "mobile":
+                case "branch":
+                    assigned = "work-unit";
+                    break;
+                case "general":
+                    assigned = "service-quality";
+                    break;
+                // Legacy support for old codes
+                case "hs":
+                    assigned = "service-quality";
+                    break;
+                case "s":
+                    assigned = "audit-team";
+                    break;
+                case "g":
+                    assigned = "work-unit";
+                    break;
+                default:
+                    assigned = "work-unit";
+                    break;
+            }
         }
 
         execution.setVariable("assignedDepartment", assigned);

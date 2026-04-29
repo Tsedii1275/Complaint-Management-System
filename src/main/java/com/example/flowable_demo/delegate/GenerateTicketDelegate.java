@@ -47,17 +47,41 @@ public class GenerateTicketDelegate implements JavaDelegate {
 
         // Immediate notification to customer after ticket generation (email + SMS)
         Map<String, Object> customer = (Map<String, Object>) execution.getVariable("customer");
+        String customerName = customer != null ? (String) customer.get("name") : "Valued Customer";
         String email = customer != null ? (String) customer.get("email") : null;
         String phone = customer != null ? (String) customer.get("phone") : null;
-        String message = "Your complaint has been registered with ticket " + ticket;
-        String subject = "Complaint Registered: " + ticket;
+        
+        // Professional email message
+        String emailMessage = String.format(
+            "Dear %s,\n\n" +
+            "Thank you for contacting us. Your complaint has been registered successfully.\n\n" +
+            "Ticket Number: %s\n" +
+            "Registration Date: %s\n\n" +
+            "We have received your complaint and our team will review it shortly. You can follow up on your complaint status using the ticket number provided above.\n\n" +
+            "For any urgent inquiries, please contact our customer service hotline.\n\n" +
+            "Best regards,\n" +
+            "Customer Service Team\n" +
+            "Complaint Management System",
+            customerName,
+            ticket,
+            LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"))
+        );
+        
+        // SMS message (shorter format)
+        String smsMessage = String.format(
+            "Your complaint has been registered with ticket %s. We will contact you shortly. For inquiries, mention: %s",
+            ticket,
+            ticket
+        );
+        
+        String subject = "Complaint Registered - Ticket #" + ticket;
 
         if (email != null) {
-            notificationService.sendEmail(email, subject, message);
+            notificationService.sendEmail(email, subject, emailMessage);
             execution.setVariable("notification.ticketEmailSent", true);
         }
         if (phone != null) {
-            notificationService.sendSms(phone, message);
+            notificationService.sendSms(phone, smsMessage);
             execution.setVariable("notification.ticketSmsSent", true);
         }
 

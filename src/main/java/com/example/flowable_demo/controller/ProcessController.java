@@ -1,5 +1,6 @@
 package com.example.flowable_demo.controller;
 
+import com.example.flowable_demo.service.NotificationService;
 import org.flowable.engine.HistoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
@@ -14,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,6 +30,9 @@ public class ProcessController {
 
     @Autowired
     private HistoryService historyService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @PostMapping("/complaints/start")
     public ResponseEntity<Map<String, Object>> startComplaint(
@@ -73,10 +78,52 @@ public class ProcessController {
         complaintVars.put("channel", channel);
         complaintVars.put("description", description);
 
+        // Generate ticket immediately
+        String ticket = "CM-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+                + "-" + UUID.randomUUID().toString().substring(0, 8);
+        complaintVars.put("id", ticket);
+
         vars.put("customer", customerVars);
         vars.put("complaint", complaintVars);
         vars.put("initiator", "initiator");
         vars.put("createdAt", java.time.LocalDateTime.now().toString());
+
+        // Send immediate ticket notification
+        try {
+            String emailMessage = String.format(
+                "Dear %s,\n\n" +
+                "Thank you for contacting us. Your complaint has been registered successfully.\n\n" +
+                "Ticket Number: %s\n" +
+                "Registration Date: %s\n\n" +
+                "We have received your complaint and our team will review it shortly. You can follow up on your complaint status using the ticket number provided above.\n\n" +
+                "For any urgent inquiries, please contact our customer service hotline.\n\n" +
+                "Best regards,\n" +
+                "Customer Service Team\n" +
+                "Complaint Management System",
+                name,
+                ticket,
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"))
+            );
+            
+            String subject = "Complaint Registered - Ticket #" + ticket;
+            notificationService.sendEmail(email, subject, emailMessage);
+            
+            // Also send SMS
+            String smsMessage = String.format(
+                "Your complaint has been registered with ticket %s. We will contact you shortly. For inquiries, mention: %s",
+                ticket,
+                ticket
+            );
+            notificationService.sendSms(phone, smsMessage);
+            
+            // Set flag to prevent duplicate notifications
+            vars.put("notification.ticketEmailSent", true);
+            vars.put("notification.ticketSmsSent", true);
+            
+        } catch (Exception e) {
+            // Log error but don't fail the submission
+            System.err.println("Failed to send immediate notification: " + e.getMessage());
+        }
 
         var instance = runtimeService.startProcessInstanceByKey("cMS", vars);
 
@@ -84,6 +131,7 @@ public class ProcessController {
         response.put("processInstanceId", instance.getId());
         response.put("businessKey", instance.getBusinessKey());
         response.put("completed", instance.isEnded());
+        response.put("ticketId", ticket);
         return ResponseEntity.ok(response);
     }
 
