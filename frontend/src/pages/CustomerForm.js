@@ -99,7 +99,10 @@ function CustomerForm() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    // Handle both DOM event and Ant Design onFinish
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
     setIsSubmitting(true);
     setMessageText('');
 
@@ -270,6 +273,28 @@ function CustomerForm() {
                   transition: 'border-color 0.3s'
                 }}
                 placeholder={t.placeholders.customerName}
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
+                {t.email} <span style={{ color: 'red' }}>*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '6px',
+                  fontSize: '16px',
+                  transition: 'border-color 0.3s'
+                }}
+                placeholder={t.placeholders.email}
               />
             </div>
 

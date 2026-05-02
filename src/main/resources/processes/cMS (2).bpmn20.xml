@@ -118,7 +118,7 @@
         <design:bordercolor><![CDATA[#1565C0]]></design:bordercolor>
       </extensionElements>
     </serviceTask>
-    <endEvent id="EndNoneEvent_67" name="Documnet the case and close">
+    <endEvent id="EndNoneEvent_67" name="Document the case and close">
       <extensionElements>
         <design:stencilid><![CDATA[EndNoneEvent]]></design:stencilid>
         <design:bgcolor><![CDATA[#FFCDD2]]></design:bgcolor>
@@ -126,11 +126,7 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </endEvent>
-    <sequenceFlow id="SequenceFlow_68" sourceRef="ServiceTask_65" targetRef="EndNoneEvent_67">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
+    <sequenceFlow id="SequenceFlow_68" sourceRef="ServiceTask_65" targetRef="EndNoneEvent_67" />
     <boundaryEvent id="IntermediateTimerEventBoundary_72" name="SLA for Resolution" attachedToRef="FormTask_57" cancelActivity="false">
       <extensionElements>
         <design:stencilid><![CDATA[IntermediateTimerEventBoundary]]></design:stencilid>
@@ -151,7 +147,7 @@
         <design:bordercolor><![CDATA[#1565C0]]></design:bordercolor>
       </extensionElements>
     </userTask>
-    <exclusiveGateway id="Exclusive_Databased_Gateway_60" name="Sensetive ?">
+    <exclusiveGateway id="Exclusive_Databased_Gateway_60" name="Sensitive ?">
       <extensionElements>
         <design:stencilid><![CDATA[Exclusive_Databased_Gateway]]></design:stencilid>
         <design:bordercolor><![CDATA[#FBC02D]]></design:bordercolor>
@@ -159,11 +155,7 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </exclusiveGateway>
-    <sequenceFlow id="SequenceFlow_61" sourceRef="FormTask_57" targetRef="Exclusive_Databased_Gateway_60">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
+    <sequenceFlow id="SequenceFlow_61" sourceRef="FormTask_57" targetRef="Exclusive_Databased_Gateway_60" />
     <boundaryEvent id="IntermediateTimerEventBoundary_71" name="SLA for Investigation" attachedToRef="FormTask_48" cancelActivity="false">
       <extensionElements>
         <design:stencilid><![CDATA[IntermediateTimerEventBoundary]]></design:stencilid>
@@ -184,7 +176,7 @@
         <design:bordercolor><![CDATA[#1565C0]]></design:bordercolor>
       </extensionElements>
     </userTask>
-    <serviceTask id="ServiceTask_52" name="Notify Customer about thier rejection" flowable:delegateExpression="${notificationDelegate}">
+    <serviceTask id="ServiceTask_52" name="Notify Customer about their rejection" flowable:delegateExpression="${notificationDelegate}">
       <extensionElements>
         <design:stencilid><![CDATA[ServiceTask]]></design:stencilid>
         <design:stencilsuperid><![CDATA[Task]]></design:stencilsuperid>
@@ -192,7 +184,7 @@
         <design:bordercolor><![CDATA[#1565C0]]></design:bordercolor>
       </extensionElements>
     </serviceTask>
-    <exclusiveGateway id="Exclusive_Databased_Gateway_50" name="Investigation Desicsion ?">
+    <exclusiveGateway id="Exclusive_Databased_Gateway_50" name="Investigation Decision ?">
       <extensionElements>
         <design:stencilid><![CDATA[Exclusive_Databased_Gateway]]></design:stencilid>
         <design:bordercolor><![CDATA[#FBC02D]]></design:bordercolor>
@@ -200,7 +192,7 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </exclusiveGateway>
-    <endEvent id="EndNoneEvent_55" name="Documnet the case and close">
+    <endEvent id="EndNoneEvent_55" name="Document the case and close">
       <extensionElements>
         <design:stencilid><![CDATA[EndNoneEvent]]></design:stencilid>
         <design:bgcolor><![CDATA[#FFCDD2]]></design:bgcolor>
@@ -208,16 +200,8 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </endEvent>
-    <sequenceFlow id="SequenceFlow_51" sourceRef="FormTask_48" targetRef="Exclusive_Databased_Gateway_50">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_56" sourceRef="ServiceTask_52" targetRef="EndNoneEvent_55">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
+    <sequenceFlow id="SequenceFlow_51" sourceRef="FormTask_48" targetRef="Exclusive_Databased_Gateway_50" />
+    <sequenceFlow id="SequenceFlow_56" sourceRef="ServiceTask_52" targetRef="EndNoneEvent_55" />
     <boundaryEvent id="IntermediateTimerEventBoundary_70" name="SLA for CMD" attachedToRef="FormTask_43" cancelActivity="false">
       <extensionElements>
         <design:stencilid><![CDATA[IntermediateTimerEventBoundary]]></design:stencilid>
@@ -262,7 +246,7 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </exclusiveGateway>
-    <endEvent id="EndNoneEvent_93" name="Documnet the case and close">
+    <endEvent id="EndNoneEvent_93" name="Document the case and close">
       <extensionElements>
         <design:stencilid><![CDATA[EndNoneEvent]]></design:stencilid>
         <design:bgcolor><![CDATA[#FFCDD2]]></design:bgcolor>
@@ -270,21 +254,9 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </endEvent>
-    <sequenceFlow id="SequenceFlow_46" sourceRef="FormTask_43" targetRef="Exclusive_Databased_Gateway_45">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_94" sourceRef="ServiceTask_62" targetRef="EndNoneEvent_93">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_58" sourceRef="ServiceTask_46" targetRef="FormTask_57">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
+    <sequenceFlow id="SequenceFlow_46" sourceRef="FormTask_43" targetRef="Exclusive_Databased_Gateway_45" />
+    <sequenceFlow id="SequenceFlow_94" sourceRef="ServiceTask_62" targetRef="EndNoneEvent_93" />
+    <sequenceFlow id="SequenceFlow_58" sourceRef="ServiceTask_46" targetRef="FormTask_57" />
     <serviceTask id="ServiceTask_41" name="Send Acknowledgment and ticket number" flowable:delegateExpression="${sendAcknowledgmentDelegate}">
       <extensionElements>
         <design:stencilid><![CDATA[ServiceTask]]></design:stencilid>
@@ -316,7 +288,7 @@
         <flowable:formProperty id="customer.name" name="Customer Name" type="string" required="true" />
         <flowable:formProperty id="customer.email" name="Customer Email" type="string" required="true" />
         <flowable:formProperty id="customer.phone" name="Customer Phone" type="string" required="true" />
-        <flowable:formProperty id="customer.accountNumber" name="Account Number" type="string" required="true" />
+        <flowable:formProperty id="customer.accountNumber" name="Account Number" type="string" required="false" />
         <flowable:formProperty id="complaint.channel" name="Complaint Channel" type="enum" required="true">
           <flowable:value id="Branch" name="Branch" />
           <flowable:value id="Contact Center" name="Contact Center" />
@@ -338,26 +310,11 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </exclusiveGateway>
-    <sequenceFlow id="SequenceFlow_77" sourceRef="ServiceTask_41" targetRef="FormTask_24">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_27" sourceRef="FormTask_24" targetRef="Exclusive_Databased_Gateway_26">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_76" sourceRef="ServiceTask_37" targetRef="ServiceTask_41">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_75" sourceRef="FormTask_12" targetRef="ServiceTask_37">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
+    <!-- Social Media channel: Register → FCR gateway directly -->
+    <sequenceFlow id="SequenceFlow_75" sourceRef="FormTask_12" targetRef="Exclusive_Databased_Gateway_26" />
+    <!-- Social Media: No-ACK path: isFCR=false → Send Acknowledgment → CMD -->
+    <sequenceFlow id="SequenceFlow_77" sourceRef="ServiceTask_41" targetRef="FormTask_43" />
+    <sequenceFlow id="SequenceFlow_76" sourceRef="ServiceTask_37" targetRef="ServiceTask_41" />
     <serviceTask id="ServiceTask_79" name="Send Acknowledgment and ticket number" flowable:delegateExpression="${sendAcknowledgmentDelegate}">
       <extensionElements>
         <design:stencilid><![CDATA[ServiceTask]]></design:stencilid>
@@ -389,7 +346,7 @@
         <flowable:formProperty id="customer.name" name="Customer Name" type="string" required="true" />
         <flowable:formProperty id="customer.email" name="Customer Email" type="string" required="true" />
         <flowable:formProperty id="customer.phone" name="Customer Phone" type="string" required="true" />
-        <flowable:formProperty id="customer.accountNumber" name="Account Number" type="string" required="true" />
+        <flowable:formProperty id="customer.accountNumber" name="Account Number" type="string" required="false" />
         <flowable:formProperty id="complaint.channel" name="Complaint Channel" type="enum" required="true">
           <flowable:value id="Branch" name="Branch" />
           <flowable:value id="Contact Center" name="Contact Center" />
@@ -411,26 +368,13 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </exclusiveGateway>
-    <sequenceFlow id="SequenceFlow_86" sourceRef="ServiceTask_79" targetRef="FormTask_20">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_23" sourceRef="FormTask_20" targetRef="Exclusive_Databased_Gateway_22">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_85" sourceRef="ServiceTask_78" targetRef="ServiceTask_79">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_84" sourceRef="FormTask_10" targetRef="ServiceTask_78">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
+    <sequenceFlow id="SequenceFlow_23" sourceRef="FormTask_20" targetRef="Exclusive_Databased_Gateway_22" />
+    <sequenceFlow id="SequenceFlow_27" sourceRef="FormTask_20" targetRef="Exclusive_Databased_Gateway_26" />
+    <!-- Contact Center channel: Register → FCR gateway directly -->
+    <sequenceFlow id="SequenceFlow_84" sourceRef="FormTask_10" targetRef="Exclusive_Databased_Gateway_22" />
+    <!-- Contact Center: No-ACK path: isFCR=false → Send Acknowledgment → CMD -->
+    <sequenceFlow id="SequenceFlow_86" sourceRef="ServiceTask_79" targetRef="FormTask_43" />
+    <sequenceFlow id="SequenceFlow_85" sourceRef="ServiceTask_78" targetRef="ServiceTask_79" />
     <serviceTask id="ServiceTask_80" name="Send Acknowledgment and ticket number" flowable:delegateExpression="${sendAcknowledgmentDelegate}">
       <extensionElements>
         <design:stencilid><![CDATA[ServiceTask]]></design:stencilid>
@@ -448,6 +392,7 @@
         <design:bordercolor><![CDATA[#1565C0]]></design:bordercolor>
       </extensionElements>
     </userTask>
+    <sequenceFlow id="SequenceFlow_19" sourceRef="FormTask_16" targetRef="Exclusive_Databased_Gateway_18" />
     <serviceTask id="ServiceTask_82" name="Issue Ticket Number" flowable:delegateExpression="${generateTicketDelegate}">
       <extensionElements>
         <design:stencilid><![CDATA[ServiceTask]]></design:stencilid>
@@ -462,7 +407,7 @@
         <flowable:formProperty id="customer.name" name="Customer Name" type="string" required="true" />
         <flowable:formProperty id="customer.email" name="Customer Email" type="string" required="true" />
         <flowable:formProperty id="customer.phone" name="Customer Phone" type="string" required="true" />
-        <flowable:formProperty id="customer.accountNumber" name="Account Number" type="string" required="true" />
+        <flowable:formProperty id="customer.accountNumber" name="Account Number" type="string" required="false" />
         <flowable:formProperty id="complaint.channel" name="Complaint Channel" type="enum" required="true">
           <flowable:value id="Branch" name="Branch" />
           <flowable:value id="Contact Center" name="Contact Center" />
@@ -484,26 +429,11 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </exclusiveGateway>
-    <sequenceFlow id="SequenceFlow_91" sourceRef="ServiceTask_80" targetRef="FormTask_16">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_19" sourceRef="FormTask_16" targetRef="Exclusive_Databased_Gateway_18">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_88" sourceRef="ServiceTask_82" targetRef="ServiceTask_80">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_87" sourceRef="FormTask_8" targetRef="ServiceTask_82">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
+    <!-- Branch channel: Register → FCR gateway directly (Acknowledgment sent immediately by controller) -->
+    <sequenceFlow id="SequenceFlow_87" sourceRef="FormTask_8" targetRef="Exclusive_Databased_Gateway_18" />
+    <!-- Branch: No-ACK path: isFCR=false → Send Acknowledgment to CMD → CMD task -->
+    <sequenceFlow id="SequenceFlow_91" sourceRef="ServiceTask_80" targetRef="FormTask_43" />
+    <sequenceFlow id="SequenceFlow_88" sourceRef="ServiceTask_82" targetRef="ServiceTask_80" />
     <serviceTask id="ServiceTask_81" name="Send Acknowledgment and ticket number" flowable:delegateExpression="${sendAcknowledgmentDelegate}">
       <extensionElements>
         <design:stencilid><![CDATA[ServiceTask]]></design:stencilid>
@@ -543,7 +473,7 @@
         <flowable:formProperty id="customer.name" name="Customer Name" type="string" required="true" />
         <flowable:formProperty id="customer.email" name="Customer Email" type="string" required="true" />
         <flowable:formProperty id="customer.phone" name="Customer Phone" type="string" required="true" />
-        <flowable:formProperty id="customer.accountNumber" name="Account Number" type="string" required="true" />
+        <flowable:formProperty id="customer.accountNumber" name="Account Number" type="string" required="false" />
         <flowable:formProperty id="complaint.channel" name="Complaint Channel" type="enum" required="true">
           <flowable:value id="Branch" name="Branch" />
           <flowable:value id="Contact Center" name="Contact Center" />
@@ -583,7 +513,7 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </startEvent>
-    <endEvent id="EndNoneEvent_35" name="Documnet the case and close">
+    <endEvent id="EndNoneEvent_35" name="Document the case and close">
       <extensionElements>
         <design:stencilid><![CDATA[EndNoneEvent]]></design:stencilid>
         <design:bgcolor><![CDATA[#FFCDD2]]></design:bgcolor>
@@ -591,144 +521,52 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </endEvent>
-    <sequenceFlow id="SequenceFlow_93" sourceRef="ServiceTask_81" targetRef="FormTask_24">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_71" sourceRef="FormTask_67" targetRef="Exclusive_Databased_Gateway_70">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_92" sourceRef="ServiceTask_31" targetRef="FormTask_67">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_90" sourceRef="ServiceTask_83" targetRef="ServiceTask_81">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_89" sourceRef="FormTask_72" targetRef="ServiceTask_83">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_74" name="Web" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_72">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </sequenceFlow>
+    <!-- Web channel: Register → Acknowledgment → FCR gateway (sends ack immediately in controller, ack task here sends CMD ack) -->
+    <sequenceFlow id="SequenceFlow_89" sourceRef="FormTask_72" targetRef="Exclusive_Databased_Gateway_18" />
+    <!-- Web: No-ACK path: isFCR=false → Send Acknowledgment → CMD -->
+    <sequenceFlow id="SequenceFlow_93" sourceRef="ServiceTask_81" targetRef="FormTask_43" />
+    <sequenceFlow id="SequenceFlow_90" sourceRef="ServiceTask_83" targetRef="ServiceTask_81" />
+    <sequenceFlow id="SequenceFlow_74" name="Web" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_72" />
     <sequenceFlow id="SequenceFlow_72" name="Yes" sourceRef="Exclusive_Databased_Gateway_70" targetRef="EndNoneEvent_35">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${isSatisfied == true}]]></conditionExpression>
     </sequenceFlow>
     <sequenceFlow id="SequenceFlow_73" name="No" sourceRef="Exclusive_Databased_Gateway_70" targetRef="FormTask_43">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${isSatisfied == false}]]></conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_7" sourceRef="startnoneevent1" targetRef="Exclusive_Databased_Gateway_6">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
+    <sequenceFlow id="SequenceFlow_7" sourceRef="startnoneevent1" targetRef="Exclusive_Databased_Gateway_6" />
+    <sequenceFlow id="SequenceFlow_63" name="No" sourceRef="Exclusive_Databased_Gateway_60" targetRef="ServiceTask_62" />
+    <sequenceFlow id="SequenceFlow_66" name="Yes" sourceRef="Exclusive_Databased_Gateway_60" targetRef="ServiceTask_65" />
+    <sequenceFlow id="SequenceFlow_53" name="Rejected" sourceRef="Exclusive_Databased_Gateway_50" targetRef="ServiceTask_52" />
+    <sequenceFlow id="SequenceFlow_59" name="Approved" sourceRef="Exclusive_Databased_Gateway_50" targetRef="FormTask_57" />
+    <sequenceFlow id="SequenceFlow_47" name="No" sourceRef="Exclusive_Databased_Gateway_45" targetRef="ServiceTask_46" />
+    <sequenceFlow id="SequenceFlow_49" name="Yes" sourceRef="Exclusive_Databased_Gateway_45" targetRef="FormTask_48" />
+    <!-- Social Media: isFCR=true → Resolve | isFCR=false → Acknowledgment to CMD -->
+    <sequenceFlow id="SequenceFlow_34" name="Yes (FCR)" sourceRef="Exclusive_Databased_Gateway_26" targetRef="ServiceTask_31">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${isFCR == true}]]></conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_63" name="No" sourceRef="Exclusive_Databased_Gateway_60" targetRef="ServiceTask_62">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
+    <sequenceFlow id="SequenceFlow_40" name="No (Escalate)" sourceRef="Exclusive_Databased_Gateway_26" targetRef="ServiceTask_41">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${isFCR == false}]]></conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_66" name="Yes" sourceRef="Exclusive_Databased_Gateway_60" targetRef="ServiceTask_65">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
+    <!-- Contact Center: isFCR=true → Resolve | isFCR=false → Acknowledgment to CMD -->
+    <sequenceFlow id="SequenceFlow_33" name="Yes (FCR)" sourceRef="Exclusive_Databased_Gateway_22" targetRef="ServiceTask_31">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${isFCR == true}]]></conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_53" name="Rejected" sourceRef="Exclusive_Databased_Gateway_50" targetRef="ServiceTask_52">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
+    <sequenceFlow id="SequenceFlow_39" name="No (Escalate)" sourceRef="Exclusive_Databased_Gateway_22" targetRef="ServiceTask_79">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${isFCR == false}]]></conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_59" name="Approved" sourceRef="Exclusive_Databased_Gateway_50" targetRef="FormTask_57">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
+    <!-- Branch: isFCR=true → Resolve notification → End | isFCR=false → Acknowledgment to CMD -->
+    <sequenceFlow id="SequenceFlow_32" name="Yes (FCR)" sourceRef="Exclusive_Databased_Gateway_18" targetRef="ServiceTask_31">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${isFCR == true}]]></conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_47" name="No" sourceRef="Exclusive_Databased_Gateway_45" targetRef="ServiceTask_46">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
+    <sequenceFlow id="SequenceFlow_38" name="No (Escalate)" sourceRef="Exclusive_Databased_Gateway_18" targetRef="ServiceTask_80">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${isFCR == false}]]></conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_49" name="Yes" sourceRef="Exclusive_Databased_Gateway_45" targetRef="FormTask_48">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_34" name="Yes" sourceRef="Exclusive_Databased_Gateway_26" targetRef="ServiceTask_31">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_40" name="No" sourceRef="Exclusive_Databased_Gateway_26" targetRef="FormTask_43">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_33" name="Yes" sourceRef="Exclusive_Databased_Gateway_22" targetRef="ServiceTask_31">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_39" name="No" sourceRef="Exclusive_Databased_Gateway_22" targetRef="FormTask_43">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_32" name="Yes" sourceRef="Exclusive_Databased_Gateway_18" targetRef="ServiceTask_31">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_38" name="No" sourceRef="Exclusive_Databased_Gateway_18" targetRef="FormTask_43">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_9" name="In Person" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_8">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_11" name="Contact Center" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_10">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_13" name="Social Media , email" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_12">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </sequenceFlow>
+    <!-- Resolution notification → End Process -->
+    <sequenceFlow id="SequenceFlow_92" sourceRef="ServiceTask_31" targetRef="EndNoneEvent_35" />
+    <sequenceFlow id="SequenceFlow_9" name="In Person" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_8" />
+    <sequenceFlow id="SequenceFlow_11" name="Contact Center" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_10" />
+    <sequenceFlow id="SequenceFlow_13" name="Social Media , email" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_12" />
+    <sequenceFlow id="SequenceFlow_71" sourceRef="FormTask_72" targetRef="Exclusive_Databased_Gateway_70" />
   </process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_Collaboration">
     <bpmndi:BPMNPlane bpmnElement="Collaboration" id="BPMNPlane_Collaboration">

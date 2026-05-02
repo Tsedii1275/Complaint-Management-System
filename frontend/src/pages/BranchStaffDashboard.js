@@ -89,8 +89,8 @@ function BranchStaffDashboard() {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (values) => {
+    // Ant Design onFinish passes form values, not an event
     if (!selectedTask) return;
 
     setIsSubmitting(true);

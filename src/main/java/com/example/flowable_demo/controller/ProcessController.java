@@ -55,9 +55,8 @@ public class ProcessController {
         String description = (String) complaint.get("description");
 
         if (name == null || name.isBlank() || email == null || email.isBlank() || phone == null
-                || phone.isBlank() || accountNumber == null || accountNumber.isBlank() || channel == null
-                || channel.isBlank() || description == null || description.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "All fields are required"));
+                || phone.isBlank() || channel == null || channel.isBlank() || description == null || description.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "All required fields must be filled"));
         }
         if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid email format"));
@@ -72,7 +71,7 @@ public class ProcessController {
         customerVars.put("name", name);
         customerVars.put("email", email);
         customerVars.put("phone", phone);
-        customerVars.put("accountNumber", accountNumber);
+        customerVars.put("accountNumber", accountNumber != null && !accountNumber.isBlank() ? accountNumber : "");
 
         Map<String, Object> complaintVars = new HashMap<>();
         complaintVars.put("channel", channel);
@@ -88,41 +87,28 @@ public class ProcessController {
         vars.put("initiator", "initiator");
         vars.put("createdAt", java.time.LocalDateTime.now().toString());
 
-        // Send immediate ticket notification
+        // Send "Complaint Registered Successfully" notification immediately on submission
         try {
             String emailMessage = String.format(
                 "Dear %s,\n\n" +
-                "Thank you for contacting us. Your complaint has been registered successfully.\n\n" +
+                "Your complaint has been registered successfully.\n\n" +
                 "Ticket Number: %s\n" +
                 "Registration Date: %s\n\n" +
-                "We have received your complaint and our team will review it shortly. You can follow up on your complaint status using the ticket number provided above.\n\n" +
-                "For any urgent inquiries, please contact our customer service hotline.\n\n" +
+                "Our team will review your complaint shortly.\n\n" +
                 "Best regards,\n" +
-                "Customer Service Team\n" +
-                "Complaint Management System",
+                "Customer Service Team",
                 name,
                 ticket,
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"))
+                java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"))
             );
-            
-            String subject = "Complaint Registered - Ticket #" + ticket;
-            notificationService.sendEmail(email, subject, emailMessage);
-            
-            // Also send SMS
-            String smsMessage = String.format(
-                "Your complaint has been registered with ticket %s. We will contact you shortly. For inquiries, mention: %s",
-                ticket,
-                ticket
-            );
-            notificationService.sendSms(phone, smsMessage);
-            
-            // Set flag to prevent duplicate notifications
+            notificationService.sendEmail(email, "Complaint Registered - Ticket #" + ticket, emailMessage);
+            notificationService.sendSms(phone, "Your complaint ticket " + ticket + " has been registered. We will keep you updated.");
             vars.put("notification.ticketEmailSent", true);
             vars.put("notification.ticketSmsSent", true);
-            
         } catch (Exception e) {
-            // Log error but don't fail the submission
-            System.err.println("Failed to send immediate notification: " + e.getMessage());
+            System.err.println("Failed to send registration notification: " + e.getMessage());
+            vars.put("notification.ticketEmailSent", false);
+            vars.put("notification.ticketSmsSent", false);
         }
 
         var instance = runtimeService.startProcessInstanceByKey("cMS", vars);

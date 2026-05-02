@@ -25,13 +25,8 @@ public class SendAcknowledgmentDelegate implements JavaDelegate {
         String email = customer != null ? (String) customer.get("email") : null;
         String phone = customer != null ? (String) customer.get("phone") : null;
         
-        // Check if immediate notification was already sent by ProcessController
-        Boolean ticketEmailSent = (Boolean) execution.getVariable("notification.ticketEmailSent");
-        if (ticketEmailSent != null && ticketEmailSent) {
-            // Immediate notification was already sent, skip sending acknowledgment
-            appendHistory(execution, "Acknowledgment skipped - immediate notification already sent for " + ticketId);
-            return;
-        }
+        // This delegate is only reached when isFCR=false (complaint escalated to CMD).
+        // Always send the escalation acknowledgment to inform customer their case is being reviewed.
 
         String customerName = customer != null ? (String) customer.get("name") : "Valued Customer";
         
