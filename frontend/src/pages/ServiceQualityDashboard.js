@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Button, Tag, Empty, Alert, Space, Row, Col } from 'antd';
+import { Card, Typography, Button, Tag, Empty, Alert, Space, Row, Col, Input } from 'antd';
 import { DeleteOutlined, SendOutlined, SafetyOutlined } from '@ant-design/icons';
 import DashboardLayout from '../components/DashboardLayout';
 import ApiService from '../services/api';
@@ -15,6 +15,7 @@ function ServiceQualityDashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [clearingTasks, setClearingTasks] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
 
   useEffect(() => {
     loadTasks();
@@ -68,6 +69,13 @@ function ServiceQualityDashboard() {
   const handleTaskSelect = async (task) => {
     setSelectedTask(task);
     setMessage('');
+    
+    // Initialize notification message
+    const customerName = task.customerName || 'Customer';
+    const complaintId = task.complaintId || 'Case';
+    const defaultMsg = `Dear ${customerName},\n\nYour complaint ${complaintId} has been processed and resolved.\n\nWe hope the resolution meets your expectations. Thank you for your patience.\n\nBest regards,\nCustomer Service Team`;
+    setNotificationMessage(defaultMsg);
+
     try {
       await loadTasks();
     } catch (error) {
@@ -83,7 +91,12 @@ function ServiceQualityDashboard() {
     setMessage('');
 
     try {
-      await ApiService.completeTask(selectedTask.id, {});
+      const variables = {
+        customNotificationMessage: notificationMessage,
+        notificationSentAt: new Date().toISOString(),
+        notificationSentBy: 'Service Quality'
+      };
+      await ApiService.completeTask(selectedTask.id, variables);
       setMessage('Resolution notification sent to customer successfully!');
       
       setSelectedTask(null);
@@ -267,6 +280,24 @@ function ServiceQualityDashboard() {
                       <br />
                       <Text>{selectedTask.name}</Text>
                     </div>
+                    {selectedTask.variables?.resolutionDetails && (
+                      <div>
+                        <Text type="secondary">Resolution Details:</Text>
+                        <br />
+                        <Paragraph strong>
+                          {selectedTask.variables.resolutionDetails}
+                        </Paragraph>
+                      </div>
+                    )}
+                    {selectedTask.variables?.actionTaken && (
+                      <div>
+                        <Text type="secondary">Action Taken:</Text>
+                        <br />
+                        <Paragraph italic>
+                          {selectedTask.variables.actionTaken}
+                        </Paragraph>
+                      </div>
+                    )}
                   </Space>
                 </Card>
               </Col>
@@ -282,22 +313,14 @@ function ServiceQualityDashboard() {
                       </Text>
                     </div>
 
-                    <div style={{ 
-                      padding: '16px', 
-                      backgroundColor: '#f8f9fa', 
-                      borderRadius: '8px',
-                      border: '1px solid #e9ecef'
-                    }}>
-                      <Text type="secondary" style={{ fontSize: '12px', marginBottom: '8px', display: 'block' }}>
-                        Notification Preview:
-                      </Text>
-                      <Text style={{ fontSize: '14px', lineHeight: '1.5' }}>
-                        Dear {selectedTask.customerName},<br /><br />
-                        Your complaint {selectedTask.complaintId} has been processed and resolved.<br /><br />
-                        We hope the resolution meets your expectations. Thank you for your patience.<br /><br />
-                        Best regards,<br />
-                        Customer Service Team
-                      </Text>
+                    <div style={{ marginBottom: '16px' }}>
+                      <Text strong>Notification Message:</Text>
+                      <Input.TextArea
+                        value={notificationMessage}
+                        onChange={(e) => setNotificationMessage(e.target.value)}
+                        rows={10}
+                        style={{ marginTop: '8px', fontSize: '14px', lineHeight: '1.5', fontFamily: 'inherit' }}
+                      />
                     </div>
 
                     <Button

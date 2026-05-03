@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Typography, Button, Tag, Empty, Alert, Form, Input, Checkbox, Space, Row, Col, Select } from 'antd';
-import { DeleteOutlined, ArrowLeftOutlined, SettingOutlined } from '@ant-design/icons';
+import { DeleteOutlined, ArrowLeftOutlined, SettingOutlined, SendOutlined } from '@ant-design/icons';
 import DashboardLayout from '../components/DashboardLayout';
 import ApiService from '../services/api';
 import { BRAND_COLORS } from '../constants/theme';
@@ -32,12 +32,7 @@ function CMDDashboard() {
       setLoading(true);
       const tasksData = await ApiService.getEnrichedTasks();
       const cmdTasks = tasksData.filter(task => 
-        task.name && (
-          task.name.includes('screens the complaint') || 
-          task.name.includes('categorize') ||
-          task.name.includes('CMD') ||
-          task.definitionKey === 'FormTask_43'
-        )
+        task.definitionKey === 'FormTask_43'
       );
       setTasks(cmdTasks);
     } catch (error) {
@@ -76,6 +71,7 @@ function CMDDashboard() {
   const handleTaskSelect = async (task) => {
     setSelectedTask(task);
     setMessage('');
+
     try {
       await loadTasks();
     } catch (error) {

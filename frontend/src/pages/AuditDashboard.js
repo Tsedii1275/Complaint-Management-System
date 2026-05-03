@@ -31,12 +31,7 @@ function AuditDashboard() {
       setLoading(true);
       const tasksData = await ApiService.getEnrichedTasks();
       const auditTasks = tasksData.filter(task => 
-        task.name && (
-          task.name.includes('investigation') || 
-          task.name.includes('audit') ||
-          task.name.includes('screen') ||
-          task.definitionKey === 'FormTask_57'
-        )
+        task.definitionKey === 'FormTask_48'
       );
       setTasks(auditTasks);
     } catch (error) {

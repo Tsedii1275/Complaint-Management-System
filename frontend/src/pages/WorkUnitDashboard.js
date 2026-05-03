@@ -30,12 +30,7 @@ function WorkUnitDashboard() {
       setLoading(true);
       const tasksData = await ApiService.getEnrichedTasks();
       const workUnitTasks = tasksData.filter(task => 
-        task.name && (
-          task.name.includes('resolution') || 
-          task.name.includes('work unit') ||
-          task.name.includes('investigate') ||
-          task.definitionKey === 'FormTask_67'
-        )
+        task.definitionKey === 'FormTask_57'
       );
       setTasks(workUnitTasks);
     } catch (error) {
