@@ -51,12 +51,23 @@ class ApiService {
 
   // Complete a task with variables
   async completeTask(taskId, variables) {
-    return this.post(`/api/tasks/${taskId}/complete`, { variables });
+    return this.post(`/api/tasks/${taskId}/complete`, variables);
   }
 
   // Get task variables
   async getTaskVariables(taskId) {
     return this.get(`/api/tasks/${taskId}/variables`);
+  }
+
+  // Delete a process instance
+  async deleteProcessInstance(instanceId) {
+    const response = await fetch(`${API_BASE_URL}/api/process/${instanceId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return true;
   }
 }
 

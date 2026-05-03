@@ -50,8 +50,11 @@ function BranchStaffDashboard() {
       setClearingTasks(true);
       try {
         const allTasks = await ApiService.getTasks();
-        const clearPromises = allTasks.map(task => 
-          ApiService.completeTask(task.id, {})
+        // Use a Set to collect unique processInstanceIds to avoid redundant calls
+        const uniqueProcessIds = [...new Set(allTasks.map(task => task.processInstanceId))];
+        
+        const clearPromises = uniqueProcessIds.map(id => 
+          ApiService.deleteProcessInstance(id)
         );
         
         await Promise.all(clearPromises);
