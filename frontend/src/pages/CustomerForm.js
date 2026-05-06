@@ -10,12 +10,14 @@ function CustomerForm() {
     email: '',
     phone: '',
     accountNumber: '',
+    complaintCategory: 'general',
     complaintDescription: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [messageType, setMessageType] = useState('');
   const [language, setLanguage] = useState('english');
+  const [errors, setErrors] = useState({});
 
   // Translations
   const translations = {
@@ -28,7 +30,19 @@ function CustomerForm() {
       phoneNumber: 'Phone Number',
       accountNumber: 'Account Number',
       complaintDescription: 'Complaint Description',
+      complaintCategory: 'Complaint Category',
       submitButton: 'Submit Complaint',
+      categories: {
+        financial: 'Financial - Banking Services',
+        atm: 'ATM - Card Services',
+        technical: 'Technical - System Issues',
+        account: 'Account - Management',
+        loan: 'Loan - Credit Services',
+        branch: 'Branch - Customer Service',
+        mobile: 'Mobile - App/Digital Banking',
+        fraud: 'Fraud - Security Issues',
+        general: 'General - Other Issues'
+      },
       placeholders: {
         customerName: 'Enter your full name',
         email: 'Enter your email address',
@@ -46,7 +60,19 @@ function CustomerForm() {
       phoneNumber: 'ስልክ ቁጥር',
       accountNumber: 'የአካውንት ቁጥር',
       complaintDescription: 'የቅሬታው ዝርዝር መግለጫ',
+      complaintCategory: 'የቅሬታ አይነት',
       submitButton: 'ቅሬታውን ያስገቡ',
+      categories: {
+        financial: 'ፋይናንሻል - የባንክ አገልግሎቶች',
+        atm: 'ኤቲኤም - የካርድ አገልግሎቶች',
+        technical: 'ቴክኒካዊ - የሲስተም ችግሮች',
+        account: 'አካውንት - አስተዳደር',
+        loan: 'ብድር - የብድር አገልግሎቶች',
+        branch: 'ቅርንጫፍ - የደንበኞች አገልግሎት',
+        mobile: 'ሞባይል - አፕ/ዲጂታል ባንኪንግ',
+        fraud: 'ማጭበርበር - የደህንነት ጉዳዮች',
+        general: 'አጠቃላይ - ሌሎች ጉዳዮች'
+      },
       placeholders: {
         customerName: 'ሙሉ ስምዎን እዚህ ያስገቡ',
         email: 'ኢሜይል አድራሻዎን ያስገቡ',
@@ -96,6 +122,25 @@ function CustomerForm() {
       ...prev,
       [name]: value
     }));
+
+    // Clear specific error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+
+    // Real-time validation for account number
+    if (name === 'accountNumber') {
+      if (value && (value.length !== 13 || !/^\d+$/.test(value))) {
+        setErrors(prev => ({
+          ...prev,
+          accountNumber: language === 'english' ? 'Must be exactly 13 digits' : 'በትክክል 13 አሃዝ መሆን አለበት'
+        }));
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -114,6 +159,16 @@ function CustomerForm() {
       phone = '+251' + phone;
     }
 
+    // Final validation before submission
+    if (formData.accountNumber && (formData.accountNumber.length !== 13 || !/^\d+$/.test(formData.accountNumber))) {
+      setErrors(prev => ({
+        ...prev,
+        accountNumber: language === 'english' ? 'Must be exactly 13 digits' : 'በትክክል 13 አሃዝ መሆን አለበት'
+      }));
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const payload = {
         customer: {
@@ -124,6 +179,7 @@ function CustomerForm() {
         },
         complaint: {
           channel: 'web',
+          category: formData.complaintCategory,
           description: formData.complaintDescription
         }
       };
@@ -140,6 +196,7 @@ function CustomerForm() {
         email: '',
         phone: '',
         accountNumber: '',
+        complaintCategory: 'general',
         complaintDescription: ''
       });
       
@@ -329,16 +386,53 @@ function CustomerForm() {
                 name="accountNumber"
                 value={formData.accountNumber}
                 onChange={handleInputChange}
+                maxLength={13}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: `1px solid ${errors.accountNumber ? '#ff4d4f' : '#ddd'}`,
+                  borderRadius: '6px',
+                  fontSize: '16px',
+                  transition: 'border-color 0.3s',
+                  outline: 'none'
+                }}
+                placeholder={t.placeholders.accountNumber}
+              />
+              {errors.accountNumber && (
+                <div style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px' }}>
+                  {errors.accountNumber}
+                </div>
+              )}
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
+                {t.complaintCategory} <span style={{ color: 'red' }}>*</span>
+              </label>
+              <select
+                name="complaintCategory"
+                value={formData.complaintCategory}
+                onChange={handleInputChange}
+                required
                 style={{
                   width: '100%',
                   padding: '12px',
                   border: '1px solid #ddd',
                   borderRadius: '6px',
                   fontSize: '16px',
+                  backgroundColor: 'white',
                   transition: 'border-color 0.3s'
                 }}
-                placeholder={t.placeholders.accountNumber}
-              />
+              >
+                <option value="financial">{t.categories.financial}</option>
+                <option value="atm">{t.categories.atm}</option>
+                <option value="technical">{t.categories.technical}</option>
+                <option value="account">{t.categories.account}</option>
+                <option value="loan">{t.categories.loan}</option>
+                <option value="branch">{t.categories.branch}</option>
+                <option value="mobile">{t.categories.mobile}</option>
+                <option value="fraud">{t.categories.fraud}</option>
+                <option value="general">{t.categories.general}</option>
+              </select>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
