@@ -1,5 +1,6 @@
 package com.example.flowable_demo.controller;
 
+import com.example.flowable_demo.service.AuditService;
 import com.example.flowable_demo.service.NotificationService;
 import org.flowable.engine.HistoryService;
 import org.flowable.engine.RuntimeService;
@@ -34,6 +35,9 @@ public class ProcessController {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private AuditService auditService;
+
     @PostMapping("/complaints/start")
     public ResponseEntity<Map<String, Object>> startComplaint(
             @RequestBody(required = false) Map<String, Object> payload) {
@@ -53,6 +57,7 @@ public class ProcessController {
         String accountNumber = (String) customer.get("accountNumber");
         String channel = (String) complaint.get("channel");
         String description = (String) complaint.get("description");
+        String category = (String) complaint.get("category");
 
         if (name == null || name.isBlank() || email == null || email.isBlank() || phone == null
                 || phone.isBlank() || channel == null || channel.isBlank() || description == null || description.isBlank()) {
@@ -76,6 +81,7 @@ public class ProcessController {
         Map<String, Object> complaintVars = new HashMap<>();
         complaintVars.put("channel", channel);
         complaintVars.put("description", description);
+        complaintVars.put("category", category);
 
         // Generate ticket immediately
         String ticket = "CM-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
@@ -112,6 +118,10 @@ public class ProcessController {
         }
 
         var instance = runtimeService.startProcessInstanceByKey("cMS", vars);
+
+        // Log audit event
+        auditService.log(ticket, instance.getId(), null, "COMPLAINT_CREATED", "customer", "web", 
+                "New complaint submitted by " + name + " via web channel.", name, email, category, description);
 
         Map<String, Object> response = new HashMap<>();
         response.put("processInstanceId", instance.getId());
@@ -255,13 +265,81 @@ public class ProcessController {
     @PostMapping("/tasks/{taskId}/complete")
     public ResponseEntity<Map<String, Object>> completeTask(@PathVariable String taskId,
             @RequestBody Map<String, Object> body) {
-        Map<String, Object> variables = (Map<String, Object>) body.get("variables");
-        if (variables == null) {
-            variables = Map.of();
+        // Handle both nested and top-level variables
+        Map<String, Object> variables;
+        if (body.containsKey("variables") && body.get("variables") instanceof Map) {
+            variables = (Map<String, Object>) body.get("variables");
+        } else {
+            variables = body;
+        }
+
+        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+        if (task != null) {
+            Map<String, Object> vars = taskService.getVariables(taskId);
+            Map<String, Object> complaint = (Map<String, Object>) vars.get("complaint");
+            Map<String, Object> customer = (Map<String, Object>) vars.get("customer");
+            
+            String ticketId = complaint != null ? (String) complaint.get("id") : "unknown";
+            String cat = complaint != null ? (String) complaint.get("category") : null;
+            String desc = complaint != null ? (String) complaint.get("description") : null;
+            String cName = customer != null ? (String) customer.get("name") : null;
+            String cEmail = customer != null ? (String) customer.get("email") : null;
+            
+            String action = "TASK_COMPLETED";
+            String actor = "staff";
+            String description = "Task '" + task.getName() + "' completed.";
+            
+            // Extract comments if any
+            if (variables.containsKey("fcrComments") && variables.get("fcrComments") != null && !variables.get("fcrComments").toString().isBlank()) {
+                description += " Comment: " + variables.get("fcrComments");
+            } else if (variables.containsKey("notes") && variables.get("notes") != null && !variables.get("notes").toString().isBlank()) {
+                description += " Notes: " + variables.get("notes");
+            }
+            if (variables.containsKey("complaintCategory")) {
+                description += " [Assigned Category: " + variables.get("complaintCategory") + "]";
+            }
+            
+            // Map specific tasks to actions
+            String defKey = task.getTaskDefinitionKey();
+            if ("FormTask_15".equals(defKey)) { action = "FCR_DECISION"; actor = "branch-staff"; }
+            else if ("FormTask_43".equals(defKey)) { action = "CMD_CLASSIFICATION"; actor = "cmd"; }
+            else if ("FormTask_48".equals(defKey)) { action = "INVESTIGATION_COMPLETED"; actor = "audit-team"; }
+            else if ("FormTask_57".equals(defKey)) { action = "RESOLUTION_COMPLETED"; actor = "work-unit"; }
+            else if ("ServiceTask_65".equals(defKey) || "ServiceTask_62".equals(defKey)) { action = "NOTIFICATION_SENT"; actor = "sq-cmd"; }
+
+            auditService.log(ticketId, task.getProcessInstanceId(), taskId, action, actor, (String) variables.getOrDefault("userId", "system"), description, cName, cEmail, cat, desc);
         }
 
         taskService.complete(taskId, variables);
+
+        if (task != null) {
+            String processInstanceId = task.getProcessInstanceId();
+            Map<String, Object> vars = historyService.createHistoricProcessInstanceQuery()
+                    .processInstanceId(processInstanceId).includeProcessVariables().singleResult().getProcessVariables();
+            Map<String, Object> complaint = (Map<String, Object>) vars.get("complaint");
+            Map<String, Object> customer = (Map<String, Object>) vars.get("customer");
+            
+            String ticketId = complaint != null ? (String) complaint.get("id") : "unknown";
+            String cat = complaint != null ? (String) complaint.get("category") : null;
+            String desc = complaint != null ? (String) complaint.get("description") : null;
+            String cName = customer != null ? (String) customer.get("name") : null;
+            String cEmail = customer != null ? (String) customer.get("email") : null;
+
+            boolean isEnded = historyService.createHistoricProcessInstanceQuery()
+                    .processInstanceId(processInstanceId).finished().count() > 0;
+            
+            if (isEnded) {
+                auditService.log(ticketId, processInstanceId, null, "CASE_CLOSED", "system", "system", "The complaint lifecycle has been fully completed and the case is closed.", cName, cEmail, cat, desc);
+            }
+        }
+
         return ResponseEntity.ok(Map.of("taskId", taskId, "completed", true));
+    }
+
+    @DeleteMapping("/process/{instanceId}")
+    public ResponseEntity<Void> deleteProcess(@PathVariable String instanceId) {
+        runtimeService.deleteProcessInstance(instanceId, "Deleted by user from dashboard");
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/process/{instanceId}")

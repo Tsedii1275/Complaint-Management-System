@@ -1,5 +1,6 @@
 package com.example.flowable_demo.delegate;
 
+import com.example.flowable_demo.service.AuditService;
 import com.example.flowable_demo.service.NotificationService;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.flowable.engine.delegate.JavaDelegate;
@@ -17,6 +18,9 @@ public class GenerateTicketDelegate implements JavaDelegate {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public void execute(DelegateExecution execution) {
@@ -86,6 +90,8 @@ public class GenerateTicketDelegate implements JavaDelegate {
         }
 
         appendHistory(execution, "Immediate ticket notification sent to customer");
+
+        auditService.log(ticket, execution.getProcessInstanceId(), null, "TICKET_GENERATED", "system", "system", "Ticket " + ticket + " has been successfully generated.");
     }
 
     private void appendHistory(DelegateExecution execution, String event) {

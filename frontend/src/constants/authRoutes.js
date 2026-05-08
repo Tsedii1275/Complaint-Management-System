@@ -33,6 +33,13 @@ export const USER_CREDENTIALS = {
     role: 'service-quality',
     route: '/service-quality',
     displayName: 'Service Quality'
+  },
+  'admin': {
+    username: 'admin',
+    password: 'admin123',
+    role: 'admin',
+    route: '/admin',
+    displayName: 'System Admin'
   }
 };
 

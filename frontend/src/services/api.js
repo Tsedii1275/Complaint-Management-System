@@ -69,6 +69,22 @@ class ApiService {
     }
     return true;
   }
+
+  // Get audit logs with optional filters
+  async getAuditLogs(filters = {}) {
+    const queryParams = new URLSearchParams();
+    
+    if (filters.action) queryParams.append('action', filters.action);
+    if (filters.complaintId) queryParams.append('complaintId', filters.complaintId);
+    if (filters.actor) queryParams.append('actor', filters.actor);
+    if (filters.startDate) queryParams.append('startDate', filters.startDate);
+    if (filters.endDate) queryParams.append('endDate', filters.endDate);
+
+    const queryString = queryParams.toString();
+    const url = `/api/audit/logs${queryString ? `?${queryString}` : ''}`;
+    
+    return this.get(url);
+  }
 }
 
 export default new ApiService();

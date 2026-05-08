@@ -1,5 +1,6 @@
 package com.example.flowable_demo.delegate;
 
+import com.example.flowable_demo.service.AuditService;
 import com.example.flowable_demo.service.NotificationService;
 import org.flowable.variable.api.delegate.VariableScope;
 import org.flowable.engine.delegate.DelegateExecution;
@@ -18,6 +19,9 @@ public class NotificationDelegate implements JavaDelegate, TaskListener {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public void notify(DelegateTask delegateTask) {
@@ -76,6 +80,16 @@ public class NotificationDelegate implements JavaDelegate, TaskListener {
         execution.setVariable("notification.sentAt", LocalDateTime.now().toString());
 
         appendHistory(execution, "Notification sent for ticket=" + ticketId + " email=" + email + " phone=" + phone);
+
+        // Get processInstanceId based on type
+        String processInstanceId = null;
+        if (execution instanceof DelegateExecution) {
+            processInstanceId = ((DelegateExecution) execution).getProcessInstanceId();
+        } else if (execution instanceof DelegateTask) {
+            processInstanceId = ((DelegateTask) execution).getProcessInstanceId();
+        }
+
+        auditService.log(ticketId, processInstanceId, null, "NOTIFICATION_SENT", "system", "system", "Resolution notification sent to customer.");
     }
 
     private void appendHistory(VariableScope execution, String event) {

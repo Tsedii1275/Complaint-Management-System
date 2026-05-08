@@ -20,13 +20,23 @@ const { Title, Text } = Typography;
 function SidebarMenu({ collapsed, userRole }) {
   const location = useLocation();
   
-  const menuItems = [
-    {
+  const menuItems = [];
+  
+  if (userRole !== 'admin') {
+    menuItems.push({
       key: `/${userRole}`,
       icon: <HomeOutlined />,
       label: 'Dashboard',
-    },
-  ];
+    });
+  }
+
+  if (userRole === 'admin') {
+    menuItems.push({
+      key: '/admin',
+      icon: <SearchOutlined />,
+      label: 'Audit Logs',
+    });
+  }
 
   return (
     <Menu
@@ -62,7 +72,8 @@ function AppHeader({ collapsed, setCollapsed, userRole, onLogout }) {
       'cmd': 'CMD Officer',
       'audit': 'Audit Team',
       'work-unit': 'Work Unit',
-      'service-quality': 'Service Quality'
+      'service-quality': 'Service Quality',
+      'admin': 'System Admin'
     };
     return titles[role] || 'Dashboard';
   };
