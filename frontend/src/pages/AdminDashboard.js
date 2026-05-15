@@ -375,82 +375,90 @@ function AdminDashboard() {
 
     return (
       <div style={{ padding: '24px 0', borderBottom: '1px solid #f0f0f0' }}>
-        {/* SLA Overview Section */}
-        {sla && (
-          <>
-            <Divider orientation="left" style={{ color: BRAND_COLORS.primary, fontWeight: 600 }}>
-              <ClockCircleOutlined /> SLA Tracking
-            </Divider>
-            <Row gutter={24} style={{ marginBottom: '24px' }}>
-              <Col span={4}>
-                <div style={{ textAlign: 'center' }}>
-                  <Statistic
-                    title={<Text type="secondary">SLA Status</Text>}
-                    value={(SLA_STATUS_CONFIG[sla.slaStatus] || {}).label || sla.slaStatus}
-                    valueStyle={{ color: (SLA_STATUS_CONFIG[sla.slaStatus] || {}).color || '#1890ff', fontSize: '18px', fontWeight: 600 }}
-                  />
-                </div>
-              </Col>
-              <Col span={4}>
-                <div style={{ textAlign: 'center' }}>
-                  <Statistic title={<Text type="secondary">Allowed</Text>} value={formatDuration(sla.totalAllowedMinutes)} valueStyle={{ fontSize: '18px' }} />
-                </div>
-              </Col>
-              <Col span={4}>
-                <div style={{ textAlign: 'center' }}>
-                  <Statistic title={<Text type="secondary">Elapsed</Text>} value={formatDuration(sla.totalElapsedMinutes)} valueStyle={{ fontSize: '18px', color: sla.totalElapsedMinutes > sla.totalAllowedMinutes ? '#ff4d4f' : '#1890ff' }} />
-                </div>
-              </Col>
-              <Col span={4}>
-                <div style={{ textAlign: 'center' }}>
-                  <Statistic title={<Text type="secondary">Remaining</Text>} value={formatDuration(sla.remainingMinutes)} valueStyle={{ fontSize: '18px', color: sla.remainingMinutes <= 0 ? '#ff4d4f' : '#52c41a' }} />
-                </div>
-              </Col>
-              <Col span={4}>
-                <div style={{ textAlign: 'center' }}>
-                  <Statistic title={<Text type="secondary">Deadline</Text>} value={sla.deadline ? moment(sla.deadline).format('MMM DD HH:mm') : '-'} valueStyle={{ fontSize: '16px' }} />
-                </div>
-              </Col>
-              <Col span={4}>
-                <div style={{ textAlign: 'center' }}>
-                  <Statistic title={<Text type="secondary">Resolved</Text>} value={sla.resolvedAt ? moment(sla.resolvedAt).format('MMM DD HH:mm') : 'Pending'} valueStyle={{ fontSize: '16px', color: sla.resolvedAt ? '#52c41a' : '#faad14' }} />
-                </div>
-              </Col>
-            </Row>
-
-            {/* Lane Duration Breakdown */}
-            <Divider orientation="left" style={{ color: BRAND_COLORS.primary, fontWeight: 600 }}>
-              <DashboardOutlined /> Time Per Department
-            </Divider>
-            <Row gutter={12} style={{ marginBottom: '16px' }}>
-              {[
-                { label: 'Branch Staff', value: sla.branchStaffDuration, color: '#1890ff' },
-                { label: 'CMD', value: sla.cmdDuration, color: '#722ed1' },
-                { label: 'Audit', value: sla.auditDuration, color: '#fa8c16' },
-                { label: 'Work Unit', value: sla.departmentDuration, color: '#52c41a' },
-                { label: 'Service Quality', value: sla.serviceQualityDuration, color: '#eb2f96' },
-              ].map((lane, idx) => (
-                <Col span={4} key={idx} offset={idx === 0 ? 1 : 0}>
-                  <div style={{
-                    textAlign: 'center', padding: '16px 0'
+            <div style={{ background: '#fff', padding: '16px', borderRadius: '8px', border: '1px solid #f0f0f0', marginBottom: '24px' }}>
+              <div style={{ fontSize: '16px', fontWeight: 600, color: BRAND_COLORS.primary, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ClockCircleOutlined /> SLA Overview
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+                {[
+                  { 
+                    label: 'SLA Status', 
+                    value: (SLA_STATUS_CONFIG[sla.slaStatus] || {}).label || sla.slaStatus, 
+                    color: (SLA_STATUS_CONFIG[sla.slaStatus] || {}).color,
+                    isTag: true 
+                  },
+                  { label: 'Allowed Time', value: formatDuration(sla.totalAllowedMinutes) },
+                  { 
+                    label: (
+                      <Tooltip title="Total time passed since the complaint was created">
+                        Elapsed Time <ClockCircleOutlined style={{ fontSize: '10px' }} />
+                      </Tooltip>
+                    ), 
+                    value: formatDuration(sla.totalElapsedMinutes), 
+                    color: sla.totalElapsedMinutes > sla.totalAllowedMinutes ? '#ff4d4f' : '#262626' 
+                  },
+                  { 
+                    label: 'Remaining Time', 
+                    value: formatDuration(sla.remainingMinutes), 
+                    color: sla.remainingMinutes <= 0 ? '#ff4d4f' : '#52c41a' 
+                  },
+                  { label: 'Deadline', value: sla.deadline ? moment(sla.deadline).format('MMM DD, YYYY HH:mm') : '-' },
+                ].map((item, idx) => (
+                  <div key={idx} style={{ 
+                    padding: '12px 16px', 
+                    background: '#fafafa', 
+                    borderRadius: '6px', 
+                    border: '1px solid #f0f0f0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
                   }}>
-                    <div style={{ fontSize: '12px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{lane.label}</div>
-                    <div style={{ fontSize: '20px', fontWeight: 600, color: lane.color }}>
-                      {formatDuration(lane.value || 0)}
+                    <div style={{ fontSize: '11px', color: '#8c8c8c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>{item.label}</div>
+                    <div style={{ fontSize: '15px', fontWeight: 600, color: item.color || '#262626' }}>
+                      {item.isTag ? (
+                        <Tag color={(SLA_STATUS_CONFIG[sla.slaStatus] || {}).tag || 'default'} style={{ margin: 0 }}>{item.value}</Tag>
+                      ) : item.value}
                     </div>
                   </div>
-                </Col>
-              ))}
-            </Row>
-          </>
-        )}
+                ))}
+              </div>
+
+              <div style={{ marginTop: '24px' }}>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: BRAND_COLORS.primary, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <DashboardOutlined /> Time Spent Per Department
+                </div>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  {[
+                    { label: 'Branch Staff', value: sla.branchStaffDuration, color: '#1890ff' },
+                    { label: 'CMD', value: sla.cmdDuration, color: '#722ed1' },
+                    { label: 'Audit', value: sla.auditDuration, color: '#fa8c16' },
+                    { label: 'Work Unit', value: sla.departmentDuration, color: '#52c41a' },
+                    { label: 'Service Quality', value: sla.serviceQualityDuration, color: '#eb2f96' },
+                  ].map((lane, idx) => (
+                    <div key={idx} style={{ 
+                      flex: '1 1 150px', 
+                      background: '#fafafa', 
+                      border: '1px solid #f0f0f0', 
+                      borderLeft: `4px solid ${lane.color}`, 
+                      padding: '12px 16px', 
+                      borderRadius: '6px',
+                    }}>
+                      <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>{lane.label}</div>
+                      <div style={{ fontSize: '16px', fontWeight: 600, color: '#333' }}>
+                        {formatDuration(lane.value || 0)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
         {/* Task Time Tracking */}
         {slaReport && slaReport.taskTracking && slaReport.taskTracking.length > 0 && (
-          <>
-            <Divider orientation="left" style={{ color: BRAND_COLORS.primary, fontWeight: 600 }}>
+          <div style={{ marginTop: '16px' }}>
+            <div style={{ fontSize: '16px', fontWeight: 600, color: BRAND_COLORS.primary, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ClockCircleOutlined /> Individual Task Tracking
-            </Divider>
+            </div>
             <Table
               columns={taskTrackingColumns}
               dataSource={slaReport.taskTracking}
@@ -460,7 +468,7 @@ function AdminDashboard() {
               scroll={{ x: 'max-content' }}
               style={{ marginBottom: '16px', border: '1px solid #f0f0f0', borderRadius: '8px' }}
             />
-          </>
+          </div>
         )}
 
         {/* Complaint Description */}
