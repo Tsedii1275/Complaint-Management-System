@@ -208,21 +208,20 @@ function CustomerForm() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: BRAND_COLORS.background, display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
+    <div style={{ minHeight: '100vh', backgroundColor: '#fcfcfc', display: 'flex', flexDirection: 'column' }}>
+      {/* Header - Left Aligned */}
       <div style={{
-        backgroundColor: BRAND_COLORS.primary,
-        color: 'white',
-        padding: '20px 40px',
-        textAlign: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-        position: 'relative'
+        backgroundColor: '#fff',
+        color: BRAND_COLORS.primary,
+        padding: '40px 80px 20px 80px',
+        position: 'relative',
+        borderBottom: '2px solid #012169'
       }}>
         {/* Language Selector */}
         <div style={{ 
           position: 'absolute', 
-          top: '20px', 
-          right: '40px',
+          top: '40px', 
+          right: '80px',
           zIndex: 10
         }}>
           <Dropdown
@@ -235,56 +234,46 @@ function CustomerForm() {
               alignItems: 'center',
               gap: '8px',
               padding: '8px 12px',
-              backgroundColor: 'rgba(255,255,255,0.1)',
-              borderRadius: '8px',
+              backgroundColor: 'rgba(0,0,0,0.05)',
+              borderRadius: '4px',
               cursor: 'pointer',
-              border: '1px solid rgba(255,255,255,0.2)',
+              border: '1px solid rgba(0,0,0,0.1)',
               transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
-            }}
-            >
-              <GlobalOutlined style={{ fontSize: '16px', color: 'white' }} />
-              <span style={{ fontSize: '14px', color: 'white', fontWeight: 500 }}>
+            }}>
+              <GlobalOutlined style={{ fontSize: '16px', color: BRAND_COLORS.primary }} />
+              <span style={{ fontSize: '14px', color: BRAND_COLORS.primary, fontWeight: 500 }}>
                 {language === 'english' ? 'English' : 'አማርኛ'}
-              </span>
-              <span style={{ fontSize: '16px' }}>
-                {language === 'english' ? '🇺🇸' : '🇪🇹'}
               </span>
             </div>
           </Dropdown>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '20px', marginBottom: '16px' }}>
           <img
             src="/download.png"
             alt="Dashen Bank Logo"
-            style={{ height: '40px', width: 'auto' }}
+            style={{ height: '60px', width: 'auto' }}
           />
-          <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '600' }}>
-            {t.title}
-          </h1>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '800', color: BRAND_COLORS.primary, letterSpacing: '-0.5px' }}>
+              {t.subtitle}
+            </h1>
+          </div>
         </div>
-        <p style={{ margin: '8px 0 0 0', opacity: 0.9 }}>
-          {t.subtitle}
-        </p>
       </div>
 
-      {/* Main Content */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px 20px' }}>
+      {/* Main Content - Paper Form Style */}
+      <div style={{ flex: 1, padding: '40px 80px', display: 'flex', justifyContent: 'center' }}>
         <div style={{
           width: '100%',
-          maxWidth: '600px',
-          backgroundColor: 'white',
+          maxWidth: '900px',
+          backgroundColor: '#fff',
           padding: '40px',
-          borderRadius: '12px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+          border: '1px solid #e0e0e0',
+          borderRadius: '2px',
+          boxShadow: 'none'
         }}>
-          <h2 style={{ textAlign: 'center', marginBottom: '30px', color: BRAND_COLORS.primary }}>
+          <h2 style={{ textAlign: 'left', marginBottom: '40px', color: BRAND_COLORS.primary, fontSize: '24px', fontWeight: 700, borderBottom: '1px solid #f0f0f0', paddingBottom: '15px' }}>
             {t.formTitle}
           </h2>
           
@@ -302,101 +291,110 @@ function CustomerForm() {
           )}
 
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
-                {t.customerName} <span style={{ color: 'red' }}>*</span>
-              </label>
-              <input
-                type="text"
-                name="customerName"
-                value={formData.customerName}
-                onChange={handleInputChange}
-                required
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '16px',
-                  transition: 'border-color 0.3s'
-                }}
-                placeholder={t.placeholders.customerName}
-              />
+            {/* Row 1: Name and Email */}
+            <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
+                  {t.customerName} <span style={{ color: 'red' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  name="customerName"
+                  value={formData.customerName}
+                  onChange={handleInputChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '1px solid #dcdcdc',
+                    borderRadius: '4px',
+                    fontSize: '15px',
+                    outline: 'none',
+                    transition: 'border-color 0.2s'
+                  }}
+                  placeholder={t.placeholders.customerName}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
+                  {t.email} <span style={{ color: 'red' }}>*</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '1px solid #dcdcdc',
+                    borderRadius: '4px',
+                    fontSize: '15px',
+                    outline: 'none',
+                    transition: 'border-color 0.2s'
+                  }}
+                  placeholder={t.placeholders.email}
+                />
+              </div>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
-                {t.email} <span style={{ color: 'red' }}>*</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '16px',
-                  transition: 'border-color 0.3s'
-                }}
-                placeholder={t.placeholders.email}
-              />
+            {/* Row 2: Phone and Account */}
+            <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
+                  {t.phoneNumber} <span style={{ color: 'red' }}>*</span>
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  required
+                  placeholder={t.placeholders.phoneNumber}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '1px solid #dcdcdc',
+                    borderRadius: '4px',
+                    fontSize: '15px',
+                    outline: 'none',
+                    transition: 'border-color 0.2s'
+                  }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
+                  {t.accountNumber} <span style={{ color: '#888', fontSize: '12px', fontWeight: 400 }}>(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  name="accountNumber"
+                  value={formData.accountNumber}
+                  onChange={handleInputChange}
+                  maxLength={13}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: `1px solid ${errors.accountNumber ? '#ff4d4f' : '#dcdcdc'}`,
+                    borderRadius: '4px',
+                    fontSize: '15px',
+                    transition: 'border-color 0.2s',
+                    outline: 'none'
+                  }}
+                  placeholder={t.placeholders.accountNumber}
+                />
+                {errors.accountNumber && (
+                  <div style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px' }}>
+                    {errors.accountNumber}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
-                {t.phoneNumber} <span style={{ color: 'red' }}>*</span>
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                required
-                placeholder={t.placeholders.phoneNumber}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '16px',
-                  transition: 'border-color 0.3s'
-                }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
-                {t.accountNumber} <span style={{ color: '#666', fontSize: '12px' }}>(optional)</span>
-              </label>
-              <input
-                type="text"
-                name="accountNumber"
-                value={formData.accountNumber}
-                onChange={handleInputChange}
-                maxLength={13}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: `1px solid ${errors.accountNumber ? '#ff4d4f' : '#ddd'}`,
-                  borderRadius: '6px',
-                  fontSize: '16px',
-                  transition: 'border-color 0.3s',
-                  outline: 'none'
-                }}
-                placeholder={t.placeholders.accountNumber}
-              />
-              {errors.accountNumber && (
-                <div style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px' }}>
-                  {errors.accountNumber}
-                </div>
-              )}
-            </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
+            {/* Row 3: Category */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
                 {t.complaintCategory} <span style={{ color: 'red' }}>*</span>
               </label>
               <select
@@ -406,12 +404,13 @@ function CustomerForm() {
                 required
                 style={{
                   width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '16px',
+                  padding: '12px 16px',
+                  border: '1px solid #dcdcdc',
+                  borderRadius: '4px',
+                  fontSize: '15px',
                   backgroundColor: 'white',
-                  transition: 'border-color 0.3s'
+                  outline: 'none',
+                  cursor: 'pointer'
                 }}
               >
                 <option value="financial">{t.categories.financial}</option>
@@ -426,8 +425,9 @@ function CustomerForm() {
               </select>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
+            {/* Row 4: Description */}
+            <div style={{ marginBottom: '32px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
                 {t.complaintDescription} <span style={{ color: 'red' }}>*</span>
               </label>
               <textarea
@@ -436,15 +436,16 @@ function CustomerForm() {
                 onChange={handleInputChange}
                 required
                 placeholder={t.placeholders.complaintDescription}
-                rows={4}
+                rows={5}
                 style={{
                   width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '16px',
+                  padding: '12px 16px',
+                  border: '1px solid #dcdcdc',
+                  borderRadius: '4px',
+                  fontSize: '15px',
                   resize: 'vertical',
-                  transition: 'border-color 0.3s'
+                  outline: 'none',
+                  transition: 'border-color 0.2s'
                 }}
               />
             </div>
