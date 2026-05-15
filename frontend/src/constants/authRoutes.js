@@ -1,53 +1,13 @@
-export const USER_CREDENTIALS = {
-  'branchstaff': { 
-    username: 'branchstaff', 
-    password: 'branch123', 
-    role: 'branch-staff',
-    route: '/branch-staff',
-    displayName: 'Branch Staff'
-  },
-  'cmd': { 
-    username: 'cmd', 
-    password: 'cmd123', 
-    role: 'cmd',
-    route: '/cmd',
-    displayName: 'CMD Officer'
-  },
-  'audit': { 
-    username: 'audit', 
-    password: 'audit123', 
-    role: 'audit',
-    route: '/audit',
-    displayName: 'Audit Team'
-  },
-  'workunit': { 
-    username: 'workunit', 
-    password: 'work123', 
-    role: 'work-unit',
-    route: '/work-unit',
-    displayName: 'Work Unit'
-  },
-  'service': { 
-    username: 'service', 
-    password: 'service123', 
-    role: 'service-quality',
-    route: '/service-quality',
-    displayName: 'Service Quality'
-  },
-  'admin': {
-    username: 'admin',
-    password: 'admin123',
-    role: 'admin',
-    route: '/admin',
-    displayName: 'System Admin'
-  }
+export const ROLE_ROUTES = {
+  'ROLE_BRANCH_STAFF': '/branch-staff',
+  'ROLE_CMD_OFFICER': '/cmd',
+  'ROLE_AUDIT_TEAM': '/audit',
+  'ROLE_DEPARTMENT_WORKUNIT': '/work-unit',
+  'ROLE_SERVICE_QUALITY': '/service-quality',
+  'ROLE_ADMIN': '/admin'
 };
 
-export const getLoginInfo = (username) => {
-  return USER_CREDENTIALS[username.toLowerCase()];
+export const getRouteForRole = (role) => {
+  return ROLE_ROUTES[role] || '/login';
 };
 
-export const validateCredentials = (username, password) => {
-  const user = USER_CREDENTIALS[username.toLowerCase()];
-  return user && user.password === password ? user : null;
-};

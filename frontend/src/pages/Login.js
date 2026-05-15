@@ -3,7 +3,8 @@ import { Card, Form, Input, Button, Typography, Alert, Layout } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { BRAND_COLORS } from '../constants/theme';
-import { USER_CREDENTIALS } from '../constants/authRoutes';
+import ApiService from '../services/api';
+import { getRouteForRole } from '../constants/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
 
 const { Title, Text } = Typography;
@@ -15,28 +16,33 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const onFinish = (values) => {
+  const onFinish = async (values) => {
     setLoading(true);
     setError('');
 
-    setTimeout(() => {
+    try {
       const username = values.username.toLowerCase();
-      const user = USER_CREDENTIALS[username];
+      const response = await ApiService.login(username, values.password);
+      
+      // response should have { token, username, role }
+      const userData = {
+        username: response.username,
+        role: response.role,
+        token: response.token
+      };
 
-      if (user && user.password === values.password) {
-        const userData = {
-          username: values.username,
-          role: user.role
-        };
-
-        login(userData);
-        navigate(user.route);
-      } else {
-        setError('Invalid username or password');
-      }
-
+      login(userData);
+      
+      // Redirect based on role
+      const targetRoute = getRouteForRole(response.role);
+      navigate(targetRoute);
+      
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Invalid username or password');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (

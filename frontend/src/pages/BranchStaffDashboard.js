@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Button, Tag, Empty, Alert, Form, Input, Checkbox, Space, Row, Col } from 'antd';
-import { DeleteOutlined, ArrowLeftOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { Card, Typography, Button, Tag, Empty, Alert, Form, Input, Checkbox, Space, Row, Col, Modal, Select } from 'antd';
+import { DeleteOutlined, ArrowLeftOutlined, CheckCircleOutlined, ExclamationCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import DashboardLayout from '../components/DashboardLayout';
 import ApiService from '../services/api';
 import { BRAND_COLORS } from '../constants/theme';
@@ -19,6 +19,18 @@ function BranchStaffDashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [clearingTasks, setClearingTasks] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [staffFormData, setStaffFormData] = useState({
+    customerName: '',
+    email: '',
+    phone: '',
+    accountNumber: '',
+    complaintCategory: 'general',
+    complaintDescription: '',
+    isFCR: false,
+    fcrComments: ''
+  });
+  const [modalForm] = Form.useForm();
 
   useEffect(() => {
     loadTasks();
@@ -124,6 +136,61 @@ function BranchStaffDashboard() {
     }
   };
 
+  const handleStaffSubmit = async () => {
+    try {
+      const values = await modalForm.validateFields();
+      setIsSubmitting(true);
+      
+      let phone = values.phone;
+      if (phone.startsWith('09')) phone = '+251' + phone.substring(1);
+      else if (phone.startsWith('9')) phone = '+251' + phone;
+
+      const payload = {
+        customer: {
+          name: values.customerName,
+          email: values.email,
+          phone: phone,
+          accountNumber: values.accountNumber || ''
+        },
+        complaint: {
+          channel: 'Branch',
+          category: values.complaintCategory,
+          description: values.complaintDescription
+        },
+        isFCR: values.isFCR,
+        fcrComments: values.fcrComments || ''
+      };
+
+      await ApiService.staffSubmitComplaint(payload);
+      
+      setMessage(values.isFCR ? 'Complaint registered and resolved successfully!' : 'Complaint registered successfully and sent to CMD.');
+      setIsModalOpen(false);
+      modalForm.resetFields();
+      setStaffFormData({
+        customerName: '',
+        email: '',
+        phone: '',
+        accountNumber: '',
+        complaintCategory: 'general',
+        complaintDescription: '',
+        isFCR: false,
+        fcrComments: ''
+      });
+      
+      // Small delay to allow Flowable to finish the transaction and advance the process
+      setTimeout(() => {
+        loadTasks();
+      }, 1000);
+    } catch (error) {
+      console.error('Error submitting complaint:', error);
+      if (!error.errorFields) {
+        setMessage('Failed to submit complaint');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
       <Card loading={true} style={{ width: '100%', maxWidth: '600px' }} />
@@ -169,16 +236,26 @@ function BranchStaffDashboard() {
               Manage and resolve customer complaints
             </Text>
           </div>
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            onClick={clearAllTasks}
-            disabled={clearingTasks}
-            loading={clearingTasks}
-            size="large"
-          >
-            Clear All Tasks
-          </Button>
+          <Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setIsModalOpen(true)}
+              size="large"
+            >
+              Fill Complaint
+            </Button>
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              onClick={clearAllTasks}
+              disabled={clearingTasks}
+              loading={clearingTasks}
+              size="large"
+            >
+              Clear All Tasks
+            </Button>
+          </Space>
         </div>
         
         {message && (
@@ -347,6 +424,83 @@ function BranchStaffDashboard() {
             </Row>
           </div>
         )}
+
+        <Modal
+          title={<Title level={3} style={{ color: BRAND_COLORS.primary, margin: 0 }}>Register New Complaint</Title>}
+          open={isModalOpen}
+          onOk={handleStaffSubmit}
+          onCancel={() => setIsModalOpen(false)}
+          confirmLoading={isSubmitting}
+          okText={staffFormData.isFCR ? "Register and Resolve" : "Register Complaint"}
+          width={700}
+          destroyOnClose
+        >
+          <Form
+            form={modalForm}
+            layout="vertical"
+            initialValues={staffFormData}
+            onValuesChange={(changed, all) => setStaffFormData(all)}
+            style={{ marginTop: '20px' }}
+          >
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item name="customerName" label="Customer Name" rules={[{ required: true }]}>
+                  <Input placeholder="Full Name" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item name="email" label="Email" rules={[{ required: true, type: 'email' }]}>
+                  <Input placeholder="Email Address" />
+                </Form.Item>
+              </Col>
+            </Row>
+            
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item name="phone" label="Phone Number" rules={[{ required: true }]}>
+                  <Input placeholder="+2519XXXXXXXX" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item name="accountNumber" label="Account Number">
+                  <Input placeholder="13-digit account number" maxLength={13} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item name="complaintCategory" label="Category" rules={[{ required: true }]}>
+              <Select placeholder="Select category">
+                <Select.Option value="financial">Financial - Banking Services</Select.Option>
+                <Select.Option value="atm">ATM - Card Services</Select.Option>
+                <Select.Option value="technical">Technical - System Issues</Select.Option>
+                <Select.Option value="account">Account - Management</Select.Option>
+                <Select.Option value="loan">Loan - Credit Services</Select.Option>
+                <Select.Option value="branch">Branch - Customer Service</Select.Option>
+                <Select.Option value="mobile">Mobile - App/Digital Banking</Select.Option>
+                <Select.Option value="fraud">Fraud - Security Issues</Select.Option>
+                <Select.Option value="general">General - Other Issues</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item name="complaintDescription" label="Complaint Description" rules={[{ required: true }]}>
+              <Input.TextArea rows={4} placeholder="Detailed description of the complaint" />
+            </Form.Item>
+
+            <div style={{ padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px', marginBottom: '24px' }}>
+              <Form.Item name="isFCR" valuePropName="checked" style={{ marginBottom: staffFormData.isFCR ? '16px' : 0 }}>
+                <Checkbox>
+                  <strong>Resolved at first contact (FCR)?</strong>
+                </Checkbox>
+              </Form.Item>
+              
+              {staffFormData.isFCR && (
+                <Form.Item name="fcrComments" label="Resolution Comments" rules={[{ required: true, message: 'Please provide resolution details' }]}>
+                  <Input.TextArea rows={3} placeholder="How was this resolved?" />
+                </Form.Item>
+              )}
+            </div>
+          </Form>
+        </Modal>
       </div>
     </DashboardLayout>
   );

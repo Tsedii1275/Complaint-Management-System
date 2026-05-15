@@ -1,20 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Table, Tag, DatePicker, Select, Input, Space, Button, Alert } from 'antd';
-import { ReloadOutlined, FilterOutlined, DownloadOutlined, RightOutlined, DownOutlined } from '@ant-design/icons';
+import { Card, Typography, Table, Tag, DatePicker, Select, Input, Space, Button, Alert, Progress, Descriptions, Statistic, Row, Col, Divider, Tooltip } from 'antd';
+import { ReloadOutlined, FilterOutlined, DownloadOutlined, RightOutlined, DownOutlined, ClockCircleOutlined, WarningOutlined, CheckCircleOutlined, ExclamationCircleOutlined, DashboardOutlined } from '@ant-design/icons';
 import DashboardLayout from '../components/DashboardLayout';
 import ApiService from '../services/api';
 import { BRAND_COLORS } from '../constants/theme';
 import moment from 'moment';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
+// ─── SLA Status colors and icons ───
+const SLA_STATUS_CONFIG = {
+  ON_TIME: { color: '#52c41a', tag: 'green', icon: <CheckCircleOutlined />, label: 'On Time' },
+  APPROACHING: { color: '#faad14', tag: 'orange', icon: <ExclamationCircleOutlined />, label: 'Approaching' },
+  OVERDUE: { color: '#ff4d4f', tag: 'red', icon: <WarningOutlined />, label: 'Overdue' },
+  BREACHED: { color: '#cf1322', tag: 'volcano', icon: <WarningOutlined />, label: 'Breached' },
+};
+
+function formatDuration(minutes) {
+  if (minutes === null || minutes === undefined) return '-';
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours < 24) return `${hours}h ${mins}m`;
+  const days = Math.floor(hours / 24);
+  const remainHours = hours % 24;
+  return `${days}d ${remainHours}h`;
+}
+
 function AdminDashboard() {
   const [logs, setLogs] = useState([]);
+  const [slaMetrics, setSlaMetrics] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [slaLoading, setSlaLoading] = useState(false);
   const [error, setError] = useState('');
-  
+  const [activeTab, setActiveTab] = useState('audit'); // 'audit' or 'sla'
+  const [expandedSlaData, setExpandedSlaData] = useState({}); // processInstanceId → SLA report
+
   // Filters
   const [filters, setFilters] = useState({
     action: undefined,
@@ -25,18 +48,19 @@ function AdminDashboard() {
 
   useEffect(() => {
     fetchLogs();
+    fetchSlaMetrics();
   }, [filters]);
 
   const fetchLogs = async () => {
     try {
       setLoading(true);
       setError('');
-      
+
       const apiFilters = {};
       if (filters.action) apiFilters.action = filters.action;
       if (filters.actor) apiFilters.actor = filters.actor;
       if (filters.complaintId) apiFilters.complaintId = filters.complaintId;
-      
+
       if (filters.dateRange && filters.dateRange.length === 2) {
         apiFilters.startDate = filters.dateRange[0].startOf('day').toISOString();
         apiFilters.endDate = filters.dateRange[1].endOf('day').toISOString();
@@ -52,6 +76,27 @@ function AdminDashboard() {
     }
   };
 
+  const fetchSlaMetrics = async () => {
+    try {
+      setSlaLoading(true);
+      const response = await ApiService.getAllSlaMetrics();
+      setSlaMetrics(response || []);
+    } catch (err) {
+      console.error('Failed to load SLA metrics:', err);
+    } finally {
+      setSlaLoading(false);
+    }
+  };
+
+  const fetchSlaReport = async (processInstanceId) => {
+    try {
+      const report = await ApiService.getSlaReport(processInstanceId);
+      setExpandedSlaData(prev => ({ ...prev, [processInstanceId]: report }));
+    } catch (err) {
+      console.error('Failed to fetch SLA report:', err);
+    }
+  };
+
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
@@ -64,24 +109,50 @@ function AdminDashboard() {
       dateRange: null
     });
   };
+
   const exportToCSV = () => {
     if (logs.length === 0) return;
 
-    const headers = ['Ticket ID', 'Process Instance ID', 'Task ID', 'Action', 'Actor', 'Actor ID', 'Description', 'Customer Name', 'Customer Email', 'Complaint Category', 'Complaint Description', 'Created At'];
-    const csvData = logs.map(log => [
-      log.complaintId || 'N/A',
-      log.processInstanceId || 'N/A',
-      log.taskId || 'N/A',
-      log.action || 'N/A',
-      log.actor || 'N/A',
-      log.actorId || 'N/A',
-      `"${(log.description || '').replace(/"/g, '""')}"`, // Escape quotes and wrap in quotes
-      `"${(log.customerName || '').replace(/"/g, '""')}"`,
-      `"${(log.customerEmail || '').replace(/"/g, '""')}"`,
-      `"${(log.complaintCategory || '').replace(/"/g, '""')}"`,
-      `"${(log.complaintDescription || '').replace(/"/g, '""')}"`,
-      moment(log.createdAt).format('YYYY-MM-DD HH:mm:ss')
-    ]);
+    // Create a mapping for SLA metrics
+    const slaMap = {};
+    slaMetrics.forEach(m => { if (m.complaintId) slaMap[m.complaintId] = m; });
+
+    const headers = [
+      'Ticket ID', 'Process Instance ID', 'Task ID', 'Action', 'Actor', 'Actor ID',
+      'Description', 'Customer Name', 'Customer Email', 'Complaint Category',
+      'Complaint Description', 'Created At',
+      'SLA Status', 'Total Elapsed Time', 'Remaining Time', 'Deadline',
+      'Branch Staff Time', 'CMD Time', 'Audit Team Time', 'Work Unit Time', 'Service Quality Time'
+    ];
+
+    const csvData = logs.map(log => {
+      const sla = slaMap[log.complaintId] || {};
+
+      return [
+        log.complaintId || 'N/A',
+        log.processInstanceId || 'N/A',
+        log.taskId || 'N/A',
+        log.action || 'N/A',
+        log.actor || 'N/A',
+        log.actorId || 'N/A',
+        `"${(log.description || '').replace(/"/g, '""')}"`,
+        `"${(log.customerName || '').replace(/"/g, '""')}"`,
+        `"${(log.customerEmail || '').replace(/"/g, '""')}"`,
+        `"${(log.complaintCategory || '').replace(/"/g, '""')}"`,
+        `"${(log.complaintDescription || '').replace(/"/g, '""')}"`,
+        moment(log.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+        // SLA Columns
+        sla.slaStatus || 'N/A',
+        formatDuration(sla.totalElapsedMinutes),
+        formatDuration(sla.remainingMinutes),
+        sla.deadline ? moment(sla.deadline).format('YYYY-MM-DD HH:mm:ss') : 'N/A',
+        formatDuration(sla.branchStaffDuration),
+        formatDuration(sla.cmdDuration),
+        formatDuration(sla.auditDuration),
+        formatDuration(sla.departmentDuration),
+        formatDuration(sla.serviceQualityDuration)
+      ];
+    });
 
     const csvContent = [
       headers.join(','),
@@ -91,16 +162,18 @@ function AdminDashboard() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
+
     link.setAttribute('href', url);
-    link.setAttribute('download', `audit_logs_${moment().format('YYYYMMDD_HHmmss')}.csv`);
+    link.setAttribute('download', `audit_logs_sla_${moment().format('YYYYMMDD_HHmmss')}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Process logs to group by complaintId
+
+
+  // ─── Process logs to group by complaintId ───
   const groupedLogs = Object.values(logs.reduce((acc, log) => {
     const id = log.complaintId || 'unknown';
     if (!acc[id]) {
@@ -117,13 +190,9 @@ function AdminDashboard() {
       };
     }
     acc[id].history.push(log);
-    
-    // Extract static info if not set yet
     if (!acc[id].customerName && log.customerName) acc[id].customerName = log.customerName;
     if (!acc[id].category && log.complaintCategory) acc[id].category = log.complaintCategory;
     if (!acc[id].description && log.complaintDescription) acc[id].description = log.complaintDescription;
-
-    // Keep track of latest action and date
     if (moment(log.createdAt).isAfter(acc[id].latestDate)) {
       acc[id].latestAction = log.action;
       acc[id].latestDate = log.createdAt;
@@ -131,8 +200,11 @@ function AdminDashboard() {
     return acc;
   }, {}));
 
-  // Sort groups by latest activity
   groupedLogs.sort((a, b) => moment(b.latestDate).diff(moment(a.latestDate)));
+
+  // ─── Merge SLA data into grouped logs ───
+  const slaByComplaintId = {};
+  slaMetrics.forEach(m => { if (m.complaintId) slaByComplaintId[m.complaintId] = m; });
 
   const mainColumns = [
     {
@@ -154,7 +226,38 @@ function AdminDashboard() {
       render: cat => cat ? <Tag color="cyan">{cat.toUpperCase()}</Tag> : <span style={{ color: '#aaa' }}>-</span>
     },
     {
-      title: 'Current Status / Latest Action',
+      title: 'SLA Status',
+      key: 'slaStatus',
+      render: (_, record) => {
+        const sla = slaByComplaintId[record.complaintId];
+        if (!sla) return <span style={{ color: '#aaa' }}>-</span>;
+        const config = SLA_STATUS_CONFIG[sla.slaStatus] || SLA_STATUS_CONFIG.ON_TIME;
+        return (
+          <Tooltip title={`Allowed: ${formatDuration(sla.totalAllowedMinutes)} | Elapsed: ${formatDuration(sla.totalElapsedMinutes)} | Remaining: ${formatDuration(sla.remainingMinutes)}`}>
+            <Tag color={config.tag} icon={config.icon}>{config.label}</Tag>
+          </Tooltip>
+        );
+      }
+    },
+    {
+      title: 'SLA Time',
+      key: 'slaTime',
+      render: (_, record) => {
+        const sla = slaByComplaintId[record.complaintId];
+        if (!sla) return <span style={{ color: '#aaa' }}>-</span>;
+        const percent = sla.totalAllowedMinutes > 0
+          ? Math.min(100, Math.round((sla.totalElapsedMinutes / sla.totalAllowedMinutes) * 100))
+          : 0;
+        const strokeColor = percent > 100 ? '#ff4d4f' : percent > 80 ? '#faad14' : '#52c41a';
+        return (
+          <Tooltip title={`${formatDuration(sla.totalElapsedMinutes)} / ${formatDuration(sla.totalAllowedMinutes)}`}>
+            <Progress percent={percent} size="small" strokeColor={strokeColor} style={{ width: 100 }} />
+          </Tooltip>
+        );
+      }
+    },
+    {
+      title: 'Current Status',
       dataIndex: 'latestAction',
       key: 'latestAction',
       render: action => {
@@ -170,16 +273,24 @@ function AdminDashboard() {
       title: 'Last Activity',
       dataIndex: 'latestDate',
       key: 'latestDate',
-      render: date => moment(date).format('MMM DD, YYYY HH:mm:ss')
+      render: date => moment(date).format('MMM DD, YYYY HH:mm')
     },
     {
-      title: 'History Count',
+      title: 'Actions',
       key: 'historyCount',
       render: (_, record) => <Tag>{record.history.length} Actions</Tag>
     }
   ];
 
   const expandedRowRender = (record) => {
+    const sla = slaByComplaintId[record.complaintId];
+    const slaReport = expandedSlaData[record.processInstanceId];
+
+    // Fetch SLA report on expand if not cached
+    if (record.processInstanceId && !slaReport) {
+      fetchSlaReport(record.processInstanceId);
+    }
+
     const historyColumns = [
       {
         title: 'Action',
@@ -213,21 +324,162 @@ function AdminDashboard() {
       }
     ];
 
+    const taskTrackingColumns = [
+      {
+        title: 'Task',
+        dataIndex: 'taskName',
+        key: 'taskName',
+        render: name => <Text strong>{name}</Text>
+      },
+      {
+        title: 'Lane / Department',
+        dataIndex: 'laneName',
+        key: 'laneName',
+        render: lane => {
+          const laneColors = {
+            'BRANCH_STAFF': 'blue', 'CONTACT_CENTER': 'cyan', 'CMD_OFFICER': 'purple',
+            'AUDIT_TEAM': 'orange', 'DEPARTMENT_WORKUNIT': 'green', 'SERVICE_QUALITY': 'magenta',
+            'CUSTOMER': 'default'
+          };
+          return <Tag color={laneColors[lane] || 'default'}>{(lane || '').replace(/_/g, ' ')}</Tag>;
+        }
+      },
+      {
+        title: 'Assigned To',
+        dataIndex: 'assignedUser',
+        key: 'assignedUser',
+        render: user => user || '-'
+      },
+      {
+        title: 'Started',
+        dataIndex: 'startedAt',
+        key: 'startedAt',
+        render: dt => dt ? moment(dt).format('MMM DD HH:mm') : '-'
+      },
+      {
+        title: 'Completed',
+        dataIndex: 'completedAt',
+        key: 'completedAt',
+        render: dt => dt ? moment(dt).format('MMM DD HH:mm') : <Tag color="processing">In Progress</Tag>
+      },
+      {
+        title: 'Duration',
+        dataIndex: 'durationMinutes',
+        key: 'durationMinutes',
+        render: (min, rec) => {
+          if (min === null || min === undefined) return <Tag color="processing">Active</Tag>;
+          return <Text>{formatDuration(min)}</Text>;
+        }
+      }
+    ];
+
     return (
-      <div style={{ padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #f0f0f0', margin: '8px 0' }}>
+      <div style={{ padding: '24px 0', borderBottom: '1px solid #f0f0f0' }}>
+        {/* SLA Overview Section */}
+        {sla && (
+          <>
+            <Divider orientation="left" style={{ color: BRAND_COLORS.primary, fontWeight: 600 }}>
+              <ClockCircleOutlined /> SLA Tracking
+            </Divider>
+            <Row gutter={24} style={{ marginBottom: '24px' }}>
+              <Col span={4}>
+                <div style={{ textAlign: 'center' }}>
+                  <Statistic
+                    title={<Text type="secondary">SLA Status</Text>}
+                    value={(SLA_STATUS_CONFIG[sla.slaStatus] || {}).label || sla.slaStatus}
+                    valueStyle={{ color: (SLA_STATUS_CONFIG[sla.slaStatus] || {}).color || '#1890ff', fontSize: '18px', fontWeight: 600 }}
+                  />
+                </div>
+              </Col>
+              <Col span={4}>
+                <div style={{ textAlign: 'center' }}>
+                  <Statistic title={<Text type="secondary">Allowed</Text>} value={formatDuration(sla.totalAllowedMinutes)} valueStyle={{ fontSize: '18px' }} />
+                </div>
+              </Col>
+              <Col span={4}>
+                <div style={{ textAlign: 'center' }}>
+                  <Statistic title={<Text type="secondary">Elapsed</Text>} value={formatDuration(sla.totalElapsedMinutes)} valueStyle={{ fontSize: '18px', color: sla.totalElapsedMinutes > sla.totalAllowedMinutes ? '#ff4d4f' : '#1890ff' }} />
+                </div>
+              </Col>
+              <Col span={4}>
+                <div style={{ textAlign: 'center' }}>
+                  <Statistic title={<Text type="secondary">Remaining</Text>} value={formatDuration(sla.remainingMinutes)} valueStyle={{ fontSize: '18px', color: sla.remainingMinutes <= 0 ? '#ff4d4f' : '#52c41a' }} />
+                </div>
+              </Col>
+              <Col span={4}>
+                <div style={{ textAlign: 'center' }}>
+                  <Statistic title={<Text type="secondary">Deadline</Text>} value={sla.deadline ? moment(sla.deadline).format('MMM DD HH:mm') : '-'} valueStyle={{ fontSize: '16px' }} />
+                </div>
+              </Col>
+              <Col span={4}>
+                <div style={{ textAlign: 'center' }}>
+                  <Statistic title={<Text type="secondary">Resolved</Text>} value={sla.resolvedAt ? moment(sla.resolvedAt).format('MMM DD HH:mm') : 'Pending'} valueStyle={{ fontSize: '16px', color: sla.resolvedAt ? '#52c41a' : '#faad14' }} />
+                </div>
+              </Col>
+            </Row>
+
+            {/* Lane Duration Breakdown */}
+            <Divider orientation="left" style={{ color: BRAND_COLORS.primary, fontWeight: 600 }}>
+              <DashboardOutlined /> Time Per Department
+            </Divider>
+            <Row gutter={12} style={{ marginBottom: '16px' }}>
+              {[
+                { label: 'Branch Staff', value: sla.branchStaffDuration, color: '#1890ff' },
+                { label: 'CMD', value: sla.cmdDuration, color: '#722ed1' },
+                { label: 'Audit', value: sla.auditDuration, color: '#fa8c16' },
+                { label: 'Work Unit', value: sla.departmentDuration, color: '#52c41a' },
+                { label: 'Service Quality', value: sla.serviceQualityDuration, color: '#eb2f96' },
+              ].map((lane, idx) => (
+                <Col span={4} key={idx} offset={idx === 0 ? 1 : 0}>
+                  <div style={{
+                    textAlign: 'center', padding: '16px 0'
+                  }}>
+                    <div style={{ fontSize: '12px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{lane.label}</div>
+                    <div style={{ fontSize: '20px', fontWeight: 600, color: lane.color }}>
+                      {formatDuration(lane.value || 0)}
+                    </div>
+                  </div>
+                </Col>
+              ))}
+            </Row>
+          </>
+        )}
+
+        {/* Task Time Tracking */}
+        {slaReport && slaReport.taskTracking && slaReport.taskTracking.length > 0 && (
+          <>
+            <Divider orientation="left" style={{ color: BRAND_COLORS.primary, fontWeight: 600 }}>
+              <ClockCircleOutlined /> Individual Task Tracking
+            </Divider>
+            <Table
+              columns={taskTrackingColumns}
+              dataSource={slaReport.taskTracking}
+              pagination={false}
+              size="small"
+              rowKey="taskId"
+              scroll={{ x: 'max-content' }}
+              style={{ marginBottom: '16px', border: '1px solid #f0f0f0', borderRadius: '8px' }}
+            />
+          </>
+        )}
+
+        {/* Complaint Description */}
         <div style={{ marginBottom: '16px' }}>
           <strong style={{ color: BRAND_COLORS.primary }}>Original Complaint Description:</strong>
           <p style={{ marginTop: '8px', color: '#555', whiteSpace: 'pre-wrap', backgroundColor: '#fff', padding: '12px', borderRadius: '6px', border: '1px solid #e8e8e8' }}>
             {record.description || 'No detailed description available.'}
           </p>
         </div>
+
+        {/* Audit Trail */}
         <strong style={{ display: 'block', marginBottom: '8px', color: BRAND_COLORS.primary }}>Audit Trail:</strong>
-        <Table 
-          columns={historyColumns} 
-          dataSource={record.history.sort((a,b) => moment(b.createdAt).diff(moment(a.createdAt)))} 
-          pagination={false} 
-          size="small" 
+        <Table
+          columns={historyColumns}
+          dataSource={record.history.sort((a, b) => moment(b.createdAt).diff(moment(a.createdAt)))}
+          pagination={false}
+          size="small"
           rowKey="id"
+          scroll={{ x: 'max-content' }}
           style={{ border: '1px solid #f0f0f0', borderRadius: '8px' }}
         />
       </div>
@@ -239,24 +491,24 @@ function AdminDashboard() {
 
   return (
     <DashboardLayout userRole="admin">
-      <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ padding: '12px 0', maxWidth: '100%', margin: '0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <Title level={2} style={{ margin: 0, color: BRAND_COLORS.primary }}>
-            Audit Logs Viewer
+            Audit Logs
           </Title>
           <Space>
-            <Button 
-              icon={<DownloadOutlined />} 
+            <Button
+              icon={<DownloadOutlined />}
               onClick={exportToCSV}
               disabled={logs.length === 0}
             >
               Export CSV
             </Button>
-            <Button 
-              type="primary" 
-              icon={<ReloadOutlined />} 
-              onClick={fetchLogs} 
-              loading={loading}
+            <Button
+              type="primary"
+              icon={<ReloadOutlined />}
+              onClick={() => { fetchLogs(); fetchSlaMetrics(); }}
+              loading={loading || slaLoading}
             >
               Refresh
             </Button>
@@ -265,26 +517,27 @@ function AdminDashboard() {
 
         {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 16 }} />}
 
-        <Card 
+        {/* Filters */}
+        <Card
           title={<span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FilterOutlined /> Filters</span>}
           style={{ marginBottom: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
         >
           <Space wrap size="large">
             <div>
               <div style={{ marginBottom: 4, fontSize: '12px', color: '#666' }}>Ticket ID</div>
-              <Input 
-                placeholder="Search Ticket ID" 
+              <Input
+                placeholder="Search Ticket ID"
                 value={filters.complaintId}
                 onChange={e => handleFilterChange('complaintId', e.target.value)}
                 style={{ width: 200 }}
                 allowClear
               />
             </div>
-            
+
             <div>
               <div style={{ marginBottom: 4, fontSize: '12px', color: '#666' }}>Action Type</div>
-              <Select 
-                placeholder="Filter by Action" 
+              <Select
+                placeholder="Filter by Action"
                 value={filters.action}
                 onChange={val => handleFilterChange('action', val)}
                 style={{ width: 200 }}
@@ -298,8 +551,8 @@ function AdminDashboard() {
 
             <div>
               <div style={{ marginBottom: 4, fontSize: '12px', color: '#666' }}>Actor</div>
-              <Select 
-                placeholder="Filter by Actor" 
+              <Select
+                placeholder="Filter by Actor"
                 value={filters.actor}
                 onChange={val => handleFilterChange('actor', val)}
                 style={{ width: 200 }}
@@ -313,7 +566,7 @@ function AdminDashboard() {
 
             <div>
               <div style={{ marginBottom: 4, fontSize: '12px', color: '#666' }}>Date Range</div>
-              <RangePicker 
+              <RangePicker
                 value={filters.dateRange}
                 onChange={val => handleFilterChange('dateRange', val)}
               />
@@ -325,10 +578,11 @@ function AdminDashboard() {
           </Space>
         </Card>
 
-        <Card style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} bodyStyle={{ padding: 0 }}>
-          <Table 
-            columns={mainColumns} 
-            dataSource={groupedLogs} 
+        {/* Main Table */}
+        <div style={{ marginTop: '24px' }}>
+          <Table
+            columns={mainColumns}
+            dataSource={groupedLogs}
             rowKey="key"
             loading={loading}
             expandable={{
@@ -344,7 +598,7 @@ function AdminDashboard() {
             pagination={{ pageSize: 15, showSizeChanger: true }}
             scroll={{ x: 'max-content' }}
           />
-        </Card>
+        </div>
       </div>
     </DashboardLayout>
   );

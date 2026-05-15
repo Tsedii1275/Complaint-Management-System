@@ -2,6 +2,7 @@ package com.example.flowable_demo.controller;
 
 import com.example.flowable_demo.service.AuditService;
 import com.example.flowable_demo.service.NotificationService;
+import com.example.flowable_demo.service.SlaTrackingService;
 import org.flowable.engine.HistoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
@@ -18,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @RestController
 @RequestMapping("/api")
@@ -38,9 +42,17 @@ public class ProcessController {
     @Autowired
     private AuditService auditService;
 
+    @Autowired
+    private SlaTrackingService slaTrackingService;
+
     @PostMapping("/complaints/start")
     public ResponseEntity<Map<String, Object>> startComplaint(
             @RequestBody(required = false) Map<String, Object> payload) {
+        return startComplaintInternal(payload, false);
+    }
+
+    private ResponseEntity<Map<String, Object>> startComplaintInternal(
+            Map<String, Object> payload, boolean skipNotification) {
         if (payload == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Request body is required and must be valid JSON"));
         }
@@ -60,7 +72,8 @@ public class ProcessController {
         String category = (String) complaint.get("category");
 
         if (name == null || name.isBlank() || email == null || email.isBlank() || phone == null
-                || phone.isBlank() || channel == null || channel.isBlank() || description == null || description.isBlank()) {
+                || phone.isBlank() || channel == null || channel.isBlank() || description == null
+                || description.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "All required fields must be filled"));
         }
         if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
@@ -93,34 +106,52 @@ public class ProcessController {
         vars.put("initiator", "initiator");
         vars.put("createdAt", java.time.LocalDateTime.now().toString());
 
-        // Send "Complaint Registered Successfully" notification immediately on submission
-        try {
-            String emailMessage = String.format(
-                "Dear %s,\n\n" +
-                "Your complaint has been registered successfully.\n\n" +
-                "Ticket Number: %s\n" +
-                "Registration Date: %s\n\n" +
-                "Our team will review your complaint shortly.\n\n" +
-                "Best regards,\n" +
-                "Customer Service Team",
-                name,
-                ticket,
-                java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"))
-            );
-            notificationService.sendEmail(email, "Complaint Registered - Ticket #" + ticket, emailMessage);
-            notificationService.sendSms(phone, "Your complaint ticket " + ticket + " has been registered. We will keep you updated.");
-            vars.put("notification.ticketEmailSent", true);
-            vars.put("notification.ticketSmsSent", true);
-        } catch (Exception e) {
-            System.err.println("Failed to send registration notification: " + e.getMessage());
-            vars.put("notification.ticketEmailSent", false);
-            vars.put("notification.ticketSmsSent", false);
+        // Send "Complaint Registered Successfully" notification immediately on
+        // submission
+        if (!skipNotification) {
+            try {
+                String emailMessage = String.format(
+                        "Dear %s,\n\n" +
+                                "Your complaint has been registered successfully.\n\n" +
+                                "Ticket Number: %s\n" +
+                                "Registration Date: %s\n\n" +
+                                "Our team will review your complaint shortly.\n\n" +
+                                "Best regards,\n" +
+                                "Customer Service Team",
+                        name,
+                        ticket,
+                        java.time.LocalDateTime.now()
+                                .format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a")));
+                notificationService.sendEmail(email, "Complaint Registered - Ticket #" + ticket, emailMessage);
+                notificationService.sendSms(phone,
+                        "Your complaint ticket " + ticket + " has been registered. We will keep you updated.");
+                vars.put("notification.ticketEmailSent", true);
+                vars.put("notification.ticketSmsSent", true);
+            } catch (Exception e) {
+                System.err.println("Failed to send registration notification: " + e.getMessage());
+                vars.put("notification.ticketEmailSent", false);
+                vars.put("notification.ticketSmsSent", false);
+            }
         }
 
         var instance = runtimeService.startProcessInstanceByKey("cMS", vars);
 
+        // Initialize SLA tracking
+        try {
+            slaTrackingService.initializeSla(instance.getId(), ticket, category);
+            // Record start time for the first task
+            List<Task> initialTasks = taskService.createTaskQuery()
+                    .processInstanceId(instance.getId()).list();
+            for (Task t : initialTasks) {
+                slaTrackingService.recordTaskStart(instance.getId(), ticket,
+                        t.getId(), t.getTaskDefinitionKey(), t.getName(), t.getAssignee());
+            }
+        } catch (Exception e) {
+            System.err.println("SLA tracking initialization failed: " + e.getMessage());
+        }
+
         // Log audit event
-        auditService.log(ticket, instance.getId(), null, "COMPLAINT_CREATED", "customer", "web", 
+        auditService.log(ticket, instance.getId(), null, "COMPLAINT_CREATED", "customer", "web",
                 "New complaint submitted by " + name + " via web channel.", name, email, category, description);
 
         Map<String, Object> response = new HashMap<>();
@@ -129,6 +160,82 @@ public class ProcessController {
         response.put("completed", instance.isEnded());
         response.put("ticketId", ticket);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/complaints/staff-submit")
+    public ResponseEntity<Map<String, Object>> startComplaintByStaff(
+            @RequestBody(required = false) Map<String, Object> payload) {
+
+        Boolean isFCR = (Boolean) payload.getOrDefault("isFCR", false);
+        String fcrComments = (String) payload.getOrDefault("fcrComments", "");
+
+        // Use internal logic to start process, skip notification if resolved at FCR
+        ResponseEntity<Map<String, Object>> startResponse = startComplaintInternal(payload, Boolean.TRUE.equals(isFCR));
+        if (!startResponse.getStatusCode().is2xxSuccessful()) {
+            return startResponse;
+        }
+
+        Map<String, Object> responseBody = startResponse.getBody();
+        String processInstanceId = (String) responseBody.get("processInstanceId");
+        String ticketId = (String) responseBody.get("ticketId");
+
+        // Always complete the first task (FCR task) for staff submissions
+        // Find the first task for this instance
+        List<Task> tasks = taskService.createTaskQuery()
+                .processInstanceId(processInstanceId)
+                .list();
+
+        if (!tasks.isEmpty()) {
+            Task fcrTask = tasks.get(0);
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("isFCR", Boolean.TRUE.equals(isFCR));
+            variables.put("fcrComments", fcrComments);
+            variables.put("userId", getCurrentUsername());
+
+            // Complete the task to push it forward
+            completeTask(fcrTask.getId(), variables);
+        }
+
+        return startResponse;
+    }
+
+    private String getCurrentUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof UserDetails) {
+            return ((UserDetails) auth.getPrincipal()).getUsername();
+        }
+        return auth != null ? auth.getName() : "system";
+    }
+
+    private String getCurrentUserRole() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && !auth.getAuthorities().isEmpty()) {
+            return auth.getAuthorities().iterator().next().getAuthority();
+        }
+        return "ROLE_ANONYMOUS";
+    }
+
+    private String mapRoleToCandidateGroup(String role) {
+        return switch (role) {
+            case "ROLE_BRANCH_STAFF" -> "branch";
+            case "ROLE_CMD_OFFICER" -> "cmd";
+            case "ROLE_AUDIT_TEAM" -> "audit";
+            case "ROLE_DEPARTMENT_WORKUNIT" -> "department";
+            case "ROLE_SERVICE_QUALITY" -> "service-quality";
+            default -> null;
+        };
+    }
+
+    private java.util.Set<String> mapRoleToTaskDefinitionKeys(String role) {
+        return switch (role) {
+            case "ROLE_BRANCH_STAFF" ->
+                java.util.Set.of("FormTask_16", "FormTask_24", "FormTask_20", "FormTask_67", "FormTask_12");
+            case "ROLE_CMD_OFFICER" -> java.util.Set.of("FormTask_43");
+            case "ROLE_AUDIT_TEAM" -> java.util.Set.of("FormTask_48");
+            case "ROLE_DEPARTMENT_WORKUNIT" -> java.util.Set.of("FormTask_57");
+            case "ROLE_SERVICE_QUALITY" -> java.util.Set.of("ServiceTask_65");
+            default -> java.util.Set.of();
+        };
     }
 
     @GetMapping("/tasks")
@@ -163,13 +270,25 @@ public class ProcessController {
             @RequestParam(required = false) String priorityFilter,
             @RequestParam(required = false) String stateFilter) {
 
+        String username = getCurrentUsername();
+        String role = getCurrentUserRole();
+        java.util.Set<String> allowedKeys = mapRoleToTaskDefinitionKeys(role);
+
         List<Task> tasks;
+        var query = taskService.createTaskQuery();
+
         if (assignee != null && !assignee.isBlank()) {
-            tasks = taskService.createTaskQuery().taskAssignee(assignee).list();
+            query = query.taskAssignee(assignee);
         } else if (candidateGroup != null && !candidateGroup.isBlank()) {
-            tasks = taskService.createTaskQuery().taskCandidateGroup(candidateGroup).list();
-        } else {
-            tasks = taskService.createTaskQuery().list();
+            query = query.taskCandidateGroup(candidateGroup);
+        }
+
+        tasks = query.list();
+
+        if (assignee == null && candidateGroup == null && !allowedKeys.isEmpty()) {
+            tasks = tasks.stream()
+                    .filter(t -> allowedKeys.contains(t.getTaskDefinitionKey()))
+                    .collect(Collectors.toList());
         }
 
         var enriched = tasks.stream().map(task -> {
@@ -251,15 +370,10 @@ public class ProcessController {
     }
 
     @PostMapping("/tasks/{taskId}/claim")
-    public ResponseEntity<Map<String, String>> claimTask(@PathVariable String taskId,
-            @RequestBody Map<String, String> body) {
-        String userId = body.get("userId");
-        if (userId == null || userId.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "userId required"));
-        }
-
-        taskService.claim(taskId, userId);
-        return ResponseEntity.ok(Map.of("taskId", taskId, "assignee", userId));
+    public ResponseEntity<Map<String, String>> claimTask(@PathVariable String taskId) {
+        String username = getCurrentUsername();
+        taskService.claim(taskId, username);
+        return ResponseEntity.ok(Map.of("taskId", taskId, "assignee", username));
     }
 
     @PostMapping("/tasks/{taskId}/complete")
@@ -278,36 +392,59 @@ public class ProcessController {
             Map<String, Object> vars = taskService.getVariables(taskId);
             Map<String, Object> complaint = (Map<String, Object>) vars.get("complaint");
             Map<String, Object> customer = (Map<String, Object>) vars.get("customer");
-            
+
             String ticketId = complaint != null ? (String) complaint.get("id") : "unknown";
             String cat = complaint != null ? (String) complaint.get("category") : null;
             String desc = complaint != null ? (String) complaint.get("description") : null;
             String cName = customer != null ? (String) customer.get("name") : null;
             String cEmail = customer != null ? (String) customer.get("email") : null;
-            
+
             String action = "TASK_COMPLETED";
             String actor = "staff";
             String description = "Task '" + task.getName() + "' completed.";
-            
+
             // Extract comments if any
-            if (variables.containsKey("fcrComments") && variables.get("fcrComments") != null && !variables.get("fcrComments").toString().isBlank()) {
+            if (variables.containsKey("fcrComments") && variables.get("fcrComments") != null
+                    && !variables.get("fcrComments").toString().isBlank()) {
                 description += " Comment: " + variables.get("fcrComments");
-            } else if (variables.containsKey("notes") && variables.get("notes") != null && !variables.get("notes").toString().isBlank()) {
+            } else if (variables.containsKey("notes") && variables.get("notes") != null
+                    && !variables.get("notes").toString().isBlank()) {
                 description += " Notes: " + variables.get("notes");
             }
             if (variables.containsKey("complaintCategory")) {
                 description += " [Assigned Category: " + variables.get("complaintCategory") + "]";
             }
-            
+
             // Map specific tasks to actions
             String defKey = task.getTaskDefinitionKey();
-            if ("FormTask_15".equals(defKey)) { action = "FCR_DECISION"; actor = "branch-staff"; }
-            else if ("FormTask_43".equals(defKey)) { action = "CMD_CLASSIFICATION"; actor = "cmd"; }
-            else if ("FormTask_48".equals(defKey)) { action = "INVESTIGATION_COMPLETED"; actor = "audit-team"; }
-            else if ("FormTask_57".equals(defKey)) { action = "RESOLUTION_COMPLETED"; actor = "work-unit"; }
-            else if ("ServiceTask_65".equals(defKey) || "ServiceTask_62".equals(defKey)) { action = "NOTIFICATION_SENT"; actor = "sq-cmd"; }
+            if ("FormTask_15".equals(defKey)) {
+                action = "FCR_DECISION";
+                actor = "branch-staff";
+            } else if ("FormTask_43".equals(defKey)) {
+                action = "CMD_CLASSIFICATION";
+                actor = "cmd";
+            } else if ("FormTask_48".equals(defKey)) {
+                action = "INVESTIGATION_COMPLETED";
+                actor = "audit-team";
+            } else if ("FormTask_57".equals(defKey)) {
+                action = "RESOLUTION_COMPLETED";
+                actor = "work-unit";
+            } else if ("ServiceTask_65".equals(defKey) || "ServiceTask_62".equals(defKey)) {
+                action = "NOTIFICATION_SENT";
+                actor = "sq-cmd";
+            }
 
-            auditService.log(ticketId, task.getProcessInstanceId(), taskId, action, actor, (String) variables.getOrDefault("userId", "system"), description, cName, cEmail, cat, desc);
+            auditService.log(ticketId, task.getProcessInstanceId(), taskId, action, actor, getCurrentUsername(),
+                    description, cName, cEmail, cat, desc);
+        }
+
+        // Record task completion in SLA tracking before completing the task
+        if (task != null) {
+            try {
+                slaTrackingService.recordTaskCompletion(taskId, getCurrentUsername());
+            } catch (Exception e) {
+                System.err.println("SLA task completion tracking failed: " + e.getMessage());
+            }
         }
 
         taskService.complete(taskId, variables);
@@ -315,21 +452,42 @@ public class ProcessController {
         if (task != null) {
             String processInstanceId = task.getProcessInstanceId();
             Map<String, Object> vars = historyService.createHistoricProcessInstanceQuery()
-                    .processInstanceId(processInstanceId).includeProcessVariables().singleResult().getProcessVariables();
+                    .processInstanceId(processInstanceId).includeProcessVariables().singleResult()
+                    .getProcessVariables();
             Map<String, Object> complaint = (Map<String, Object>) vars.get("complaint");
             Map<String, Object> customer = (Map<String, Object>) vars.get("customer");
-            
+
             String ticketId = complaint != null ? (String) complaint.get("id") : "unknown";
             String cat = complaint != null ? (String) complaint.get("category") : null;
             String desc = complaint != null ? (String) complaint.get("description") : null;
             String cName = customer != null ? (String) customer.get("name") : null;
             String cEmail = customer != null ? (String) customer.get("email") : null;
 
+            // Record start for any new tasks that appeared after this task was completed
+            try {
+                List<Task> newTasks = taskService.createTaskQuery()
+                        .processInstanceId(processInstanceId).list();
+                for (Task newTask : newTasks) {
+                    slaTrackingService.recordTaskStart(processInstanceId, ticketId,
+                            newTask.getId(), newTask.getTaskDefinitionKey(), newTask.getName(), newTask.getAssignee());
+                }
+            } catch (Exception e) {
+                System.err.println("SLA new task tracking failed: " + e.getMessage());
+            }
+
             boolean isEnded = historyService.createHistoricProcessInstanceQuery()
                     .processInstanceId(processInstanceId).finished().count() > 0;
-            
+
             if (isEnded) {
-                auditService.log(ticketId, processInstanceId, null, "CASE_CLOSED", "system", "system", "The complaint lifecycle has been fully completed and the case is closed.", cName, cEmail, cat, desc);
+                auditService.log(ticketId, processInstanceId, null, "CASE_CLOSED", "system", "system",
+                        "The complaint lifecycle has been fully completed and the case is closed.", cName, cEmail, cat,
+                        desc);
+                // Mark SLA as resolved
+                try {
+                    slaTrackingService.markResolved(processInstanceId);
+                } catch (Exception e) {
+                    System.err.println("SLA resolution marking failed: " + e.getMessage());
+                }
             }
         }
 

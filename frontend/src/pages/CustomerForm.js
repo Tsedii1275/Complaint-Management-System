@@ -103,17 +103,8 @@ function CustomerForm() {
 
   // Test API connection on component mount
   useEffect(() => {
-    const testApi = async () => {
-      try {
-        await ApiService.getTasks();
-        console.log('✅ API connection working');
-      } catch (error) {
-        console.error('❌ API connection failed:', error);
-        setMessageText('Cannot connect to backend. Please ensure the backend is running on localhost:8080');
-        setMessageType('error');
-      }
-    };
-    testApi();
+    // Disabled restricted test call to avoid 401 errors for customers
+    console.log('Customer form initialized');
   }, []);
 
   const handleInputChange = (e) => {

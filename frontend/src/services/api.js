@@ -1,13 +1,40 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+const API_BASE_URL = 'http://localhost:8080';
 
 class ApiService {
+  getHeaders() {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user.token) {
+        headers['Authorization'] = `Bearer ${user.token}`;
+      }
+    }
+    return headers;
+  }
+
   async post(url, data) {
     const response = await fetch(`${API_BASE_URL}${url}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: this.getHeaders(),
       body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Optional: handle auto-logout or redirect
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  }
+
+  async get(url) {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      headers: this.getHeaders(),
     });
     
     if (!response.ok) {
@@ -17,19 +44,19 @@ class ApiService {
     return response.json();
   }
 
-  async get(url) {
-    const response = await fetch(`${API_BASE_URL}${url}`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
+  // Authentication
+  async login(username, password) {
+    return this.post('/api/auth/login', { username, password });
   }
 
   // Submit new complaint
   async submitComplaint(complaintData) {
     return this.post('/api/complaints/start', complaintData);
+  }
+
+  // Staff submits a complaint (possibly already resolved)
+  async staffSubmitComplaint(complaintData) {
+    return this.post('/api/complaints/staff-submit', complaintData);
   }
 
   // Get tasks for a specific role/group
@@ -45,8 +72,9 @@ class ApiService {
   }
 
   // Claim a task
-  async claimTask(taskId, userId) {
-    return this.post(`/api/tasks/${taskId}/claim`, { userId });
+  async claimTask(taskId) {
+    // backend now gets userId from token
+    return this.post(`/api/tasks/${taskId}/claim`, {});
   }
 
   // Complete a task with variables
@@ -63,6 +91,7 @@ class ApiService {
   async deleteProcessInstance(instanceId) {
     const response = await fetch(`${API_BASE_URL}/api/process/${instanceId}`, {
       method: 'DELETE',
+      headers: this.getHeaders(),
     });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -84,6 +113,26 @@ class ApiService {
     const url = `/api/audit/logs${queryString ? `?${queryString}` : ''}`;
     
     return this.get(url);
+  }
+
+  // Get all SLA metrics
+  async getAllSlaMetrics() {
+    return this.get('/api/audit/sla/all');
+  }
+
+  // Get SLA report for a specific complaint by process instance ID
+  async getSlaReport(processInstanceId) {
+    return this.get(`/api/audit/sla/process/${processInstanceId}`);
+  }
+
+  // Get SLA report by complaint/ticket ID
+  async getSlaByComplaintId(complaintId) {
+    return this.get(`/api/audit/sla/complaint/${complaintId}`);
+  }
+
+  // Get task time tracking for a process instance
+  async getTaskTracking(processInstanceId) {
+    return this.get(`/api/audit/sla/tasks/${processInstanceId}`);
   }
 }
 

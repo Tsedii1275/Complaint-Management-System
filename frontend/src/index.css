@@ -211,7 +211,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .main-content-area {
-  padding: 40px 48px;
+  padding: 24px 16px;
   transition: padding 0.3s ease;
 }
 
@@ -221,13 +221,13 @@ h1, h2, h3, h4, h5, h6 {
   }
   
   .main-content-area {
-    padding: 24px 32px;
+    padding: 20px 12px;
   }
 }
 
 @media (max-width: 768px) {
   .main-content-area {
-    padding: 20px 24px;
+    padding: 16px 8px;
   }
   
   .header-search {
@@ -237,7 +237,7 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 576px) {
   .main-content-area {
-    padding: 16px 16px;
+    padding: 12px 4px;
   }
 }
 

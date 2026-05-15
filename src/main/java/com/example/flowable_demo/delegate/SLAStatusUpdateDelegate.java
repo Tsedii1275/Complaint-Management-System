@@ -1,27 +1,39 @@
 package com.example.flowable_demo.delegate;
 
+import com.example.flowable_demo.service.SlaTrackingService;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.flowable.engine.delegate.JavaDelegate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component("slaStatusUpdateDelegate")
 public class SLAStatusUpdateDelegate implements JavaDelegate {
 
+    @Autowired
+    private SlaTrackingService slaTrackingService;
+
     @Override
     public void execute(DelegateExecution execution) {
-        Map<String, Object> sla = (Map<String, Object>) execution.getVariable("sla");
-        if (sla == null) {
-            throw new IllegalStateException("SLA object missing");
-        }
+        String processInstanceId = execution.getProcessInstanceId();
 
-        sla.put("breached", true);
-        sla.put("breachedAt", LocalDateTime.now().toString());
+        slaTrackingService.getMetricsByProcessInstanceId(processInstanceId).ifPresent(metrics -> {
+            slaTrackingService.recalculateSlaStatus(metrics);
 
-        execution.setVariable("sla", sla);
-        appendHistory(execution, "SLA breached, set breached=true");
+            // Sync to process variables
+            Map<String, Object> slaVars = new HashMap<>();
+            slaVars.put("totalAllowedMinutes", metrics.getTotalAllowedMinutes());
+            slaVars.put("totalElapsedMinutes", metrics.getTotalElapsedMinutes());
+            slaVars.put("remainingMinutes", metrics.getRemainingMinutes());
+            slaVars.put("status", metrics.getSlaStatus());
+            slaVars.put("deadline", metrics.getDeadline().toString());
+            slaVars.put("isBreached", metrics.getBreached());
+
+            execution.setVariable("sla", slaVars);
+            appendHistory(execution, "SLA status updated: " + metrics.getSlaStatus());
+        });
     }
 
     private void appendHistory(DelegateExecution execution, String event) {
