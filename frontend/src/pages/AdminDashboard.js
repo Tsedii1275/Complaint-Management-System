@@ -387,7 +387,14 @@ function AdminDashboard() {
                     color: (SLA_STATUS_CONFIG[sla.slaStatus] || {}).color,
                     isTag: true 
                   },
-                  { label: 'Allowed Time', value: formatDuration(sla.totalAllowedMinutes) },
+                  { 
+                    label: (
+                      <Tooltip title="Maximum time allotted based on the complaint category">
+                        Allowed Time <ClockCircleOutlined style={{ fontSize: '10px' }} />
+                      </Tooltip>
+                    ), 
+                    value: formatDuration(sla.totalAllowedMinutes) 
+                  },
                   { 
                     label: (
                       <Tooltip title="Total time passed since the complaint was created">
