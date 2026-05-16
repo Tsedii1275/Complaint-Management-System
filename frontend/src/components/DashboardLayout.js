@@ -48,7 +48,7 @@ function SidebarMenu({ collapsed, userRole }) {
   );
 }
 
-function AppHeader({ collapsed, setCollapsed, userRole, onLogout }) {
+function AppHeader({ collapsed, setCollapsed, userRole, user, onLogout }) {
   const userMenu = {
     items: [
       {
@@ -77,6 +77,9 @@ function AppHeader({ collapsed, setCollapsed, userRole, onLogout }) {
     };
     return titles[role] || 'Dashboard';
   };
+
+  const displayName = user?.username || `${userRole.charAt(0).toUpperCase() + userRole.slice(1)} User`;
+  const initial = user?.username ? user.username.charAt(0).toUpperCase() : userRole.charAt(0).toUpperCase();
 
   return (
     <AntHeader style={{
@@ -143,11 +146,11 @@ function AppHeader({ collapsed, setCollapsed, userRole, onLogout }) {
         <Dropdown menu={userMenu} trigger={['click']}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
             <Avatar style={{ backgroundColor: BRAND_COLORS.accent, color: BRAND_COLORS.primary, fontWeight: 'bold' }}>
-              {userRole.charAt(0).toUpperCase()}
+              {initial}
             </Avatar>
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }} className="hide-on-mobile">
               <Text style={{ color: BRAND_COLORS.white, fontWeight: 500 }}>
-                {userRole.charAt(0).toUpperCase() + userRole.slice(1)} User
+                {displayName}
               </Text>
               <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}>
                 {getRoleTitle(userRole)}
@@ -164,7 +167,7 @@ const DashboardLayout = ({ children, userRole }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.lg;
 
@@ -181,6 +184,7 @@ const DashboardLayout = ({ children, userRole }) => {
         collapsed={collapsed} 
         setCollapsed={setCollapsed} 
         userRole={userRole}
+        user={user}
         onLogout={handleLogout}
       />
       <Layout style={{ overflow: 'hidden' }}>
