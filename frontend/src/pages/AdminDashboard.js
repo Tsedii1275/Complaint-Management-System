@@ -409,7 +409,6 @@ function AdminDashboard() {
                     value: formatDuration(sla.remainingMinutes), 
                     color: sla.remainingMinutes <= 0 ? '#ff4d4f' : '#52c41a' 
                   },
-                  { label: 'Deadline', value: sla.deadline ? moment(sla.deadline).format('MMM DD, YYYY HH:mm') : '-' },
                 ].map((item, idx) => (
                   <div key={idx} style={{ 
                     padding: '12px 16px', 
