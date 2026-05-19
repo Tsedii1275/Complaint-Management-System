@@ -319,9 +319,6 @@ function CMDDashboard() {
                         <Option value="fraud">Fraud - Security Issues</Option>
                         <Option value="general">General - Other Issues</Option>
                       </Select>
-                      <small style={{ color: '#666', display: 'block', marginTop: '4px' }}>
-                        Categories determine routing: Financial/ATM/Fraud → Audit Team, Technical/Account/Loan/Mobile/Branch → Work Unit, General → Service Quality
-                      </small>
                     </Form.Item>
 
                     <Form.Item label="Priority Level" required>

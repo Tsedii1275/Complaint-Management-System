@@ -253,17 +253,16 @@ public class SlaTrackingService {
         report.put("createdAt", m.getCreatedAt() != null ? m.getCreatedAt().toString() : null);
         report.put("resolvedAt", m.getResolvedAt() != null ? m.getResolvedAt().toString() : null);
 
-        // Lane durations
-        Map<String, Object> laneMetrics = new HashMap<>();
-        laneMetrics.put("branchStaffDuration", m.getBranchStaffDuration());
-        laneMetrics.put("cmdDuration", m.getCmdDuration());
-        laneMetrics.put("auditDuration", m.getAuditDuration());
-        laneMetrics.put("departmentDuration", m.getDepartmentDuration());
-        laneMetrics.put("serviceQualityDuration", m.getServiceQualityDuration());
-        report.put("laneMetrics", laneMetrics);
-
-        // Individual task tracking
+        // Individual task tracking & dynamic lane duration updates
         List<TaskTimeTracking> tasks = getTaskTrackingByProcessInstanceId(processInstanceId);
+        LocalDateTime now = LocalDateTime.now();
+
+        long branchStaffDuration = m.getBranchStaffDuration();
+        long cmdDuration = m.getCmdDuration();
+        long auditDuration = m.getAuditDuration();
+        long departmentDuration = m.getDepartmentDuration();
+        long serviceQualityDuration = m.getServiceQualityDuration();
+
         List<Map<String, Object>> taskList = tasks.stream().map(t -> {
             Map<String, Object> taskMap = new HashMap<>();
             taskMap.put("taskId", t.getTaskId());
@@ -272,10 +271,47 @@ public class SlaTrackingService {
             taskMap.put("assignedUser", t.getAssignedUser());
             taskMap.put("startedAt", t.getStartedAt() != null ? t.getStartedAt().toString() : null);
             taskMap.put("completedAt", t.getCompletedAt() != null ? t.getCompletedAt().toString() : null);
-            taskMap.put("durationMinutes", t.getDurationMinutes());
-            taskMap.put("durationHours", t.getDurationHours());
+            
+            if (t.getCompletedAt() == null && t.getStartedAt() != null) {
+                long activeMinutes = Duration.between(t.getStartedAt(), now).toMinutes();
+                double activeHours = Math.round((activeMinutes / 60.0) * 100.0) / 100.0;
+                taskMap.put("durationMinutes", activeMinutes);
+                taskMap.put("durationHours", activeHours);
+                taskMap.put("inProgress", true);
+            } else {
+                taskMap.put("durationMinutes", t.getDurationMinutes());
+                taskMap.put("durationHours", t.getDurationHours());
+                taskMap.put("inProgress", false);
+            }
             return taskMap;
         }).toList();
+
+        // Calculate and add active durations of in-progress tasks to their respective lane counts in real-time
+        for (TaskTimeTracking t : tasks) {
+            if (t.getCompletedAt() == null && t.getStartedAt() != null) {
+                long activeMinutes = Duration.between(t.getStartedAt(), now).toMinutes();
+                String lane = t.getLaneName();
+                if (lane != null) {
+                    switch (lane) {
+                        case "BRANCH_STAFF", "CONTACT_CENTER" -> branchStaffDuration += activeMinutes;
+                        case "CMD_OFFICER" -> cmdDuration += activeMinutes;
+                        case "AUDIT_TEAM" -> auditDuration += activeMinutes;
+                        case "DEPARTMENT_WORKUNIT" -> departmentDuration += activeMinutes;
+                        case "SERVICE_QUALITY" -> serviceQualityDuration += activeMinutes;
+                    }
+                }
+            }
+        }
+
+        // Lane durations including active durations
+        Map<String, Object> laneMetrics = new HashMap<>();
+        laneMetrics.put("branchStaffDuration", branchStaffDuration);
+        laneMetrics.put("cmdDuration", cmdDuration);
+        laneMetrics.put("auditDuration", auditDuration);
+        laneMetrics.put("departmentDuration", departmentDuration);
+        laneMetrics.put("serviceQualityDuration", serviceQualityDuration);
+        
+        report.put("laneMetrics", laneMetrics);
         report.put("taskTracking", taskList);
 
         return report;

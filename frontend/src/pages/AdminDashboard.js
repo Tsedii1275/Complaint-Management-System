@@ -435,11 +435,11 @@ function AdminDashboard() {
                 </div>
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   {[
-                    { label: 'Branch Staff', value: sla.branchStaffDuration, color: '#1890ff' },
-                    { label: 'CMD', value: sla.cmdDuration, color: '#722ed1' },
-                    { label: 'Audit', value: sla.auditDuration, color: '#fa8c16' },
-                    { label: 'Work Unit', value: sla.departmentDuration, color: '#52c41a' },
-                    { label: 'Service Quality', value: sla.serviceQualityDuration, color: '#eb2f96' },
+                    { label: 'Branch Staff', value: slaReport?.laneMetrics?.branchStaffDuration ?? sla?.branchStaffDuration, color: '#1890ff' },
+                    { label: 'CMD', value: slaReport?.laneMetrics?.cmdDuration ?? sla?.cmdDuration, color: '#722ed1' },
+                    { label: 'Audit', value: slaReport?.laneMetrics?.auditDuration ?? sla?.auditDuration, color: '#fa8c16' },
+                    { label: 'Work Unit', value: slaReport?.laneMetrics?.departmentDuration ?? sla?.departmentDuration, color: '#52c41a' },
+                    { label: 'Service Quality', value: slaReport?.laneMetrics?.serviceQualityDuration ?? sla?.serviceQualityDuration, color: '#eb2f96' },
                   ].map((lane, idx) => (
                     <div key={idx} style={{ 
                       flex: '1 1 150px', 

@@ -18,6 +18,16 @@ function CustomerForm() {
   const [messageType, setMessageType] = useState('');
   const [language, setLanguage] = useState('english');
   const [errors, setErrors] = useState({});
+  const [countryCode, setCountryCode] = useState('+251');
+  const countryCodes = [
+    { code: '+251', flag: '🇪🇹', name: 'Ethiopia' },
+    { code: '+1', flag: '🇺🇸', name: 'USA' },
+    { code: '+44', flag: '🇬🇧', name: 'UK' },
+    { code: '+254', flag: '🇰🇪', name: 'Kenya' },
+    { code: '+253', flag: '🇩🇯', name: 'Djibouti' },
+    { code: '+971', flag: '🇦🇪', name: 'UAE' },
+    { code: '+966', flag: '🇸🇦', name: 'Saudi Arabia' }
+  ];
 
   // Translations
   const translations = {
@@ -46,7 +56,7 @@ function CustomerForm() {
       placeholders: {
         customerName: 'Enter your full name',
         email: 'Enter your email address',
-        phoneNumber: '+2519XXXXXXXX',
+        phoneNumber: '9XXXXXXXX',
         accountNumber: 'Enter your account number',
         complaintDescription: 'Describe your complaint in detail'
       }
@@ -76,7 +86,7 @@ function CustomerForm() {
       placeholders: {
         customerName: 'ሙሉ ስምዎን እዚህ ያስገቡ',
         email: 'ኢሜይል አድራሻዎን ያስገቡ',
-        phoneNumber: '+2519XXXXXXXX',
+        phoneNumber: '9XXXXXXXX',
         accountNumber: 'የአካውንት ቁጥርዎን ያስገቡ',
         complaintDescription: 'የቅሬታዎን ዝርዝር እዚህ ይግለጹ'
       }
@@ -142,13 +152,19 @@ function CustomerForm() {
     setIsSubmitting(true);
     setMessageText('');
 
-    // Validate phone format - convert to +251 format if needed
-    let phone = formData.phone;
-    if (phone.startsWith('09')) {
-      phone = '+251' + phone.substring(1);
-    } else if (phone.startsWith('9')) {
-      phone = '+251' + phone;
+    // Validate phone format - sanitize and merge with selected country code
+    let rawPhone = formData.phone.trim();
+    if (rawPhone.startsWith('0')) {
+      rawPhone = rawPhone.substring(1);
     }
+    if (rawPhone.startsWith(countryCode)) {
+      rawPhone = rawPhone.substring(countryCode.length);
+    } else if (rawPhone.startsWith('+')) {
+      // If they typed another country code entirely on the right
+      rawPhone = rawPhone.replace(/^\+\d+/, '');
+    }
+    
+    let phone = countryCode + rawPhone;
 
     // Final validation before submission
     if (formData.accountNumber && (formData.accountNumber.length !== 13 || !/^\d+$/.test(formData.accountNumber))) {
@@ -345,23 +361,48 @@ function CustomerForm() {
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
                   {t.phoneNumber} <span style={{ color: 'red' }}>*</span>
                 </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  required
-                  placeholder={t.placeholders.phoneNumber}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: '1px solid #dcdcdc',
-                    borderRadius: '4px',
-                    fontSize: '15px',
-                    outline: 'none',
-                    transition: 'border-color 0.2s'
-                  }}
-                />
+                <div style={{ display: 'flex' }}>
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #dcdcdc',
+                      borderRight: 'none',
+                      borderRadius: '4px 0 0 4px',
+                      fontSize: '15px',
+                      backgroundColor: '#f8f9fa',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      width: '110px',
+                      color: BRAND_COLORS.primary,
+                      fontWeight: 500
+                    }}
+                  >
+                    {countryCodes.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag} {c.code}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    required
+                    placeholder={t.placeholders.phoneNumber}
+                    style={{
+                      flex: 1,
+                      padding: '12px 16px',
+                      border: '1px solid #dcdcdc',
+                      borderRadius: '0 4px 4px 0',
+                      fontSize: '15px',
+                      outline: 'none',
+                      transition: 'border-color 0.2s'
+                    }}
+                  />
+                </div>
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>

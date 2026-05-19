@@ -13,6 +13,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class NotificationService {
@@ -40,18 +41,19 @@ public class NotificationService {
                     "No JavaMailSender configured; set spring.mail properties in application.properties");
         }
 
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(body, false);
-            mailSender.send(message);
-            System.out.println("[EMAIL] sent via SMTP to=" + to + " subject=" + subject);
-        } catch (MailException | MessagingException ex) {
-            System.err.println("[EMAIL] SMTP send failed: " + ex.getMessage());
-            throw new RuntimeException("Email send failed", ex);
-        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+                helper.setTo(to);
+                helper.setSubject(subject);
+                helper.setText(body, false);
+                mailSender.send(message);
+                System.out.println("[EMAIL] sent via SMTP to=" + to + " subject=" + subject);
+            } catch (MailException | MessagingException ex) {
+                System.err.println("[EMAIL] SMTP send failed: " + ex.getMessage());
+            }
+        });
     }
 
     public void sendSms(String phone, String message) {
@@ -59,36 +61,36 @@ public class NotificationService {
             throw new IllegalArgumentException("Phone number is required");
         }
 
-        if (StringUtils.hasText(twilioAccountSid) && StringUtils.hasText(twilioAuthToken)
-                && StringUtils.hasText(twilioFromPhone)) {
-            try {
-                if (!twilioInitialized) {
-                    synchronized (this) {
-                        if (!twilioInitialized) {
-                            Twilio.init(twilioAccountSid, twilioAuthToken);
-                            twilioInitialized = true;
+        CompletableFuture.runAsync(() -> {
+            if (StringUtils.hasText(twilioAccountSid) && StringUtils.hasText(twilioAuthToken)
+                    && StringUtils.hasText(twilioFromPhone)) {
+                try {
+                    if (!twilioInitialized) {
+                        synchronized (this) {
+                            if (!twilioInitialized) {
+                                Twilio.init(twilioAccountSid, twilioAuthToken);
+                                twilioInitialized = true;
+                            }
                         }
                     }
+
+                    Message messageResult = Message.creator(
+                            new PhoneNumber(phone),
+                            new PhoneNumber(twilioFromPhone),
+                            message)
+                            .create();
+
+                    System.out.println("[SMS] sent via Twilio to=" + phone + " sid=" + messageResult.getSid());
+                } catch (ApiException ex) {
+                    System.err.println(
+                            "[SMS] Twilio send failed: " + ex.getMessage() + " (continuing without failing process)");
                 }
-
-                Message messageResult = Message.creator(
-                        new PhoneNumber(phone),
-                        new PhoneNumber(twilioFromPhone),
-                        message)
-                        .create();
-
-                System.out.println("[SMS] sent via Twilio to=" + phone + " sid=" + messageResult.getSid());
-            } catch (ApiException ex) {
-                System.err.println(
-                        "[SMS] Twilio send failed: " + ex.getMessage() + " (continuing without failing process)");
-                // Avoid failing the entire process if SMS provider is misconfigured
                 return;
             }
-            return;
-        }
 
-        System.out.println(
-                "[SMS] Twilio not configured (twilio.account-sid/twilio.auth-token/twilio.from-phone missing). "
-                        + "Fallback: log the message only. to=" + phone + " message=" + message);
+            System.out.println(
+                    "[SMS] Twilio not configured (twilio.account-sid/twilio.auth-token/twilio.from-phone missing). "
+                            + "Fallback: log the message only. to=" + phone + " message=" + message);
+        });
     }
 }

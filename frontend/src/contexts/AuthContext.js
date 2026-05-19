@@ -11,27 +11,38 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        return JSON.parse(userStr);
+      } catch (error) {
+        console.error('AuthContext - Error parsing user data:', error);
+        localStorage.removeItem('user');
+      }
+    }
+    return null;
+  });
 
-  // Check authentication on mount
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem('user');
+  });
+
+  // Check authentication on mount (sync check in case of external changes)
   useEffect(() => {
     const checkAuth = () => {
       const userStr = localStorage.getItem('user');
       if (userStr) {
         try {
           const userData = JSON.parse(userStr);
-          console.log('AuthContext - User found:', userData);
           setUser(userData);
           setIsAuthenticated(true);
         } catch (error) {
-          console.error('AuthContext - Error parsing user data:', error);
           localStorage.removeItem('user');
           setUser(null);
           setIsAuthenticated(false);
         }
       } else {
-        console.log('AuthContext - No user found');
         setUser(null);
         setIsAuthenticated(false);
       }
