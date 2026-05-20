@@ -503,12 +503,44 @@ function AdminDashboard() {
   const uniqueActions = [...new Set(logs.map(log => log.action).filter(Boolean))];
   const uniqueActors = [...new Set(logs.map(log => log.actor).filter(Boolean))];
 
+  // ─── Real-time Analytics Calculations ───
+  const totalComplaints = slaMetrics.length;
+  const resolvedComplaints = slaMetrics.filter(m => m.resolvedAt !== null);
+  const resolvedCount = resolvedComplaints.length;
+  const activeCount = totalComplaints - resolvedCount;
+
+  // SLA status for resolved complaints
+  const resolvedOnTime = resolvedComplaints.filter(m => m.slaStatus === 'ON_TIME' || m.slaStatus === 'APPROACHING').length;
+  const resolvedBreached = resolvedCount - resolvedOnTime;
+
+  const categoriesMap = {
+    financial: 'Financial',
+    atm: 'ATM',
+    technical: 'Technical',
+    account: 'Account',
+    loan: 'Loan',
+    branch: 'Branch',
+    mobile: 'Mobile',
+    fraud: 'Fraud',
+    general: 'General'
+  };
+
+  const categoryData = Object.keys(categoriesMap).map(key => {
+    const count = slaMetrics.filter(m => m.complaintCategory === key).length;
+    return {
+      key,
+      name: categoriesMap[key],
+      count,
+      percent: totalComplaints > 0 ? Math.round((count / totalComplaints) * 100) : 0
+    };
+  }).sort((a, b) => b.count - a.count);
+
   return (
     <DashboardLayout userRole="admin">
       <div style={{ padding: '12px 0', maxWidth: '100%', margin: '0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <Title level={2} style={{ margin: 0, color: BRAND_COLORS.primary }}>
-            Audit Logs
+            Audit Logs & SLA Dashboard
           </Title>
           <Space>
             <Button
@@ -530,6 +562,185 @@ function AdminDashboard() {
         </div>
 
         {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 16 }} />}
+
+        {/* Real-time Analytics Summary */}
+        <div style={{ marginBottom: '24px' }}>
+          <Row gutter={[16, 16]}>
+            {/* Volume Summary */}
+            <Col xs={24} md={8}>
+              <Card 
+                title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><DashboardOutlined /> Volume Summary</span>}
+                bordered={true}
+                style={{ height: '100%', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: '16px', height: '100%', minHeight: '130px' }}>
+                  {/* SVG Donut Chart */}
+                  <div style={{ position: 'relative', width: '110px', height: '110px', flexShrink: 0 }}>
+                    <svg width="100%" height="100%" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
+                      {/* Background circle */}
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="48"
+                        fill="transparent"
+                        stroke="#f0f0f0"
+                        strokeWidth="12"
+                      />
+                      {totalComplaints > 0 ? (
+                        <>
+                          {/* Resolved Segment */}
+                          <circle
+                            cx="60"
+                            cy="60"
+                            r="48"
+                            fill="transparent"
+                            stroke="#52c41a"
+                            strokeWidth="12"
+                            strokeDasharray={2 * Math.PI * 48}
+                            strokeDashoffset={(2 * Math.PI * 48) - (resolvedCount / totalComplaints) * (2 * Math.PI * 48)}
+                            strokeLinecap="round"
+                            style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+                          />
+                          {/* Active Segment */}
+                          <circle
+                            cx="60"
+                            cy="60"
+                            r="48"
+                            fill="transparent"
+                            stroke="#1890ff"
+                            strokeWidth="12"
+                            strokeDasharray={2 * Math.PI * 48}
+                            strokeDashoffset={(2 * Math.PI * 48) - (activeCount / totalComplaints) * (2 * Math.PI * 48)}
+                            transform={`rotate(${(resolvedCount / totalComplaints) * 360} 60 60)`}
+                            strokeLinecap="round"
+                            style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+                          />
+                        </>
+                      ) : null}
+                    </svg>
+                    {/* Center Total Count Label */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{ fontSize: '22px', fontWeight: '800', color: BRAND_COLORS.primary, lineHeight: 1 }}>
+                        {totalComplaints}
+                      </div>
+                      <div style={{ fontSize: '9px', color: '#8c8c8c', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total</div>
+                    </div>
+                  </div>
+
+                  {/* Legend Table/List */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                    {/* Resolved Legend */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: '6px' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#3f8600', fontWeight: 500 }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#52c41a' }}></span>
+                        Resolved
+                      </span>
+                      <div style={{ textAlign: 'right' }}>
+                        <strong style={{ fontSize: '13px', color: '#3f8600', display: 'block', lineHeight: 1.1 }}>{resolvedCount}</strong>
+                        <span style={{ fontSize: '10px', color: '#52c41a' }}>
+                          {totalComplaints > 0 ? Math.round((resolvedCount / totalComplaints) * 100) : 0}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Active Legend */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px', background: '#e6f7ff', border: '1px solid #91d5ff', borderRadius: '6px' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#096dd9', fontWeight: 500 }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#1890ff' }}></span>
+                        Active
+                      </span>
+                      <div style={{ textAlign: 'right' }}>
+                        <strong style={{ fontSize: '13px', color: '#096dd9', display: 'block', lineHeight: 1.1 }}>{activeCount}</strong>
+                        <span style={{ fontSize: '10px', color: '#1890ff' }}>
+                          {totalComplaints > 0 ? Math.round((activeCount / totalComplaints) * 100) : 0}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+
+            {/* Resolved SLA Performance */}
+            <Col xs={24} md={8}>
+              <Card 
+                title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><ClockCircleOutlined /> SLA Compliance (Resolved)</span>}
+                bordered={true}
+                style={{ height: '100%', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
+              >
+                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>On-Time Resolution Rate</span>
+                  <strong style={{ fontSize: '18px', color: resolvedCount > 0 && (resolvedOnTime / resolvedCount) >= 0.8 ? '#52c41a' : '#faad14' }}>
+                    {resolvedCount > 0 ? Math.round((resolvedOnTime / resolvedCount) * 100) : 0}%
+                  </strong>
+                </div>
+                <Progress 
+                  percent={resolvedCount > 0 ? Math.round((resolvedOnTime / resolvedCount) * 100) : 0} 
+                  strokeColor={{ '0%': '#faad14', '100%': '#52c41a' }}
+                  status="active"
+                  style={{ marginBottom: '20px' }}
+                />
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#52c41a', display: 'inline-block' }}></span>
+                      Resolved On-Time
+                    </span>
+                    <strong>{resolvedOnTime}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff4d4f', display: 'inline-block' }}></span>
+                      Resolved Breached / Overdue
+                    </span>
+                    <strong>{resolvedBreached}</strong>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+
+            {/* Complaints by Category */}
+            <Col xs={24} md={8}>
+              <Card 
+                title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><FilterOutlined /> Complaints by Category</span>}
+                bordered={true}
+                bodyStyle={{ padding: '12px 24px 24px 24px' }}
+                style={{ height: '100%', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
+              >
+                <div style={{ maxHeight: '160px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {categoryData.filter(c => c.count > 0).length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '24px 0', color: '#bfbfbf' }}>No complaints registered yet</div>
+                  ) : (
+                    categoryData.filter(c => c.count > 0).map((cat, idx) => (
+                      <div key={idx} style={{ marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '2px' }}>
+                          <span style={{ fontWeight: 500 }}>{cat.name}</span>
+                          <span style={{ color: '#8c8c8c' }}>{cat.count} ({cat.percent}%)</span>
+                        </div>
+                        <Progress 
+                          percent={cat.percent} 
+                          size="small" 
+                          showInfo={false} 
+                          strokeColor={
+                            cat.key === 'fraud' || cat.key === 'financial' ? '#cf1322' : 
+                            cat.key === 'technical' || cat.key === 'mobile' ? '#1890ff' : '#fa8c16'
+                          }
+                        />
+                      </div>
+                    ))
+                  )}
+                </div>
+              </Card>
+            </Col>
+          </Row>
+        </div>
 
         {/* Filters */}
         <Card

@@ -28,7 +28,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedUser(String username, String email, String password, Role role) {
-        User user = userRepository.findByUsername(username).orElse(null);
+        User user = userRepository.findByUsernameIgnoreCase(username).orElse(null);
         if (user == null) {
             user = User.builder()
                     .username(username)
