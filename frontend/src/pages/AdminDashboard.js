@@ -508,22 +508,23 @@ function AdminDashboard() {
   const resolvedBreached = resolvedCount - resolvedOnTime;
 
   const categoriesMap = {
-    financial: 'Financial',
-    atm: 'ATM',
-    technical: 'Technical',
-    account: 'Account',
-    loan: 'Loan',
-    branch: 'Branch',
-    mobile: 'Mobile',
-    fraud: 'Fraud',
-    general: 'General'
+    financial: { label: 'Financial', color: '#cf1322' },
+    atm: { label: 'ATM', color: '#1890ff' },
+    technical: { label: 'Technical', color: '#722ed1' },
+    account: { label: 'Account', color: '#52c41a' },
+    loan: { label: 'Loan', color: '#fa8c16' },
+    branch: { label: 'Branch', color: '#eb2f96' },
+    mobile: { label: 'Mobile', color: '#13c2c2' },
+    fraud: { label: 'Fraud', color: '#f5222d' },
+    general: { label: 'General', color: '#faad14' }
   };
 
   const categoryData = Object.keys(categoriesMap).map(key => {
     const count = filteredMetrics.filter(m => m.complaintCategory === key).length;
     return {
       key,
-      name: categoriesMap[key],
+      name: categoriesMap[key].label,
+      color: categoriesMap[key].color,
       count,
       percent: totalComplaints > 0 ? Math.round((count / totalComplaints) * 100) : 0
     };
@@ -683,10 +684,7 @@ function AdminDashboard() {
                           percent={cat.percent}
                           size="small"
                           showInfo={false}
-                          strokeColor={
-                            cat.key === 'fraud' || cat.key === 'financial' ? '#cf1322' :
-                              cat.key === 'technical' || cat.key === 'mobile' ? '#1890ff' : '#fa8c16'
-                          }
+                          strokeColor={cat.color}
                         />
                       </div>
                     ))

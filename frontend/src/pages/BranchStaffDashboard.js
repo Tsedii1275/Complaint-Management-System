@@ -284,7 +284,10 @@ function BranchStaffDashboard() {
 
         {/* Analytics Summary */}
         {(() => {
-          const totalComplaints = slaMetrics.length;
+          // Filter to active/unresolved complaints that correspond strictly to current visible tasks
+          const activeTaskComplaintIds = new Set(tasks.map(t => t.complaintId).filter(Boolean));
+          const activeSlaMetrics = slaMetrics.filter(m => activeTaskComplaintIds.has(m.complaintId));
+          const totalComplaints = activeSlaMetrics.length;
 
           const categoriesMap = {
             financial: { label: 'Financial', color: '#cf1322' },
@@ -299,7 +302,7 @@ function BranchStaffDashboard() {
           };
 
           const categoryData = Object.keys(categoriesMap).map(key => {
-            const count = slaMetrics.filter(m => m.complaintCategory === key).length;
+            const count = activeSlaMetrics.filter(m => m.complaintCategory === key).length;
             return {
               key,
               name: categoriesMap[key].label,
