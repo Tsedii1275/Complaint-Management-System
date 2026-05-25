@@ -239,23 +239,7 @@ function AdminDashboard() {
         );
       }
     },
-    {
-      title: 'SLA Time',
-      key: 'slaTime',
-      render: (_, record) => {
-        const sla = slaByComplaintId[record.complaintId];
-        if (!sla) return <span style={{ color: '#aaa' }}>-</span>;
-        const percent = sla.totalAllowedMinutes > 0
-          ? Math.min(100, Math.round((sla.totalElapsedMinutes / sla.totalAllowedMinutes) * 100))
-          : 0;
-        const strokeColor = percent > 100 ? '#ff4d4f' : percent > 80 ? '#faad14' : '#52c41a';
-        return (
-          <Tooltip title={`${formatDuration(sla.totalElapsedMinutes)} / ${formatDuration(sla.totalAllowedMinutes)}`}>
-            <Progress percent={percent} size="small" strokeColor={strokeColor} style={{ width: 100 }} />
-          </Tooltip>
-        );
-      }
-    },
+
     {
       title: 'Current Status',
       dataIndex: 'latestAction',
@@ -375,89 +359,89 @@ function AdminDashboard() {
 
     return (
       <div style={{ padding: '24px 0', borderBottom: '1px solid #f0f0f0' }}>
-            <div style={{ background: '#fff', padding: '16px', borderRadius: '8px', border: '1px solid #f0f0f0', marginBottom: '24px' }}>
-              <div style={{ fontSize: '16px', fontWeight: 600, color: BRAND_COLORS.primary, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ClockCircleOutlined /> SLA Overview
+        <div style={{ background: '#fff', padding: '16px', borderRadius: '8px', border: '1px solid #f0f0f0', marginBottom: '24px' }}>
+          <div style={{ fontSize: '16px', fontWeight: 600, color: BRAND_COLORS.primary, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ClockCircleOutlined /> SLA Overview
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+            {[
+              {
+                label: 'SLA Status',
+                value: (SLA_STATUS_CONFIG[sla.slaStatus] || {}).label || sla.slaStatus,
+                color: (SLA_STATUS_CONFIG[sla.slaStatus] || {}).color,
+                isTag: true
+              },
+              {
+                label: (
+                  <Tooltip title="Maximum time allotted based on the complaint category">
+                    Allowed Time <ClockCircleOutlined style={{ fontSize: '10px' }} />
+                  </Tooltip>
+                ),
+                value: formatDuration(sla.totalAllowedMinutes)
+              },
+              {
+                label: (
+                  <Tooltip title="Total time passed since the complaint was created">
+                    Elapsed Time <ClockCircleOutlined style={{ fontSize: '10px' }} />
+                  </Tooltip>
+                ),
+                value: formatDuration(sla.totalElapsedMinutes),
+                color: sla.totalElapsedMinutes > sla.totalAllowedMinutes ? '#ff4d4f' : '#262626'
+              },
+              {
+                label: 'Remaining Time',
+                value: formatDuration(sla.remainingMinutes),
+                color: sla.remainingMinutes <= 0 ? '#ff4d4f' : '#52c41a'
+              },
+            ].map((item, idx) => (
+              <div key={idx} style={{
+                padding: '12px 16px',
+                background: '#fafafa',
+                borderRadius: '6px',
+                border: '1px solid #f0f0f0',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center'
+              }}>
+                <div style={{ fontSize: '11px', color: '#8c8c8c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>{item.label}</div>
+                <div style={{ fontSize: '15px', fontWeight: 600, color: item.color || '#262626' }}>
+                  {item.isTag ? (
+                    <Tag color={(SLA_STATUS_CONFIG[sla.slaStatus] || {}).tag || 'default'} style={{ margin: 0 }}>{item.value}</Tag>
+                  ) : item.value}
+                </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '24px' }}>
-                {[
-                  { 
-                    label: 'SLA Status', 
-                    value: (SLA_STATUS_CONFIG[sla.slaStatus] || {}).label || sla.slaStatus, 
-                    color: (SLA_STATUS_CONFIG[sla.slaStatus] || {}).color,
-                    isTag: true 
-                  },
-                  { 
-                    label: (
-                      <Tooltip title="Maximum time allotted based on the complaint category">
-                        Allowed Time <ClockCircleOutlined style={{ fontSize: '10px' }} />
-                      </Tooltip>
-                    ), 
-                    value: formatDuration(sla.totalAllowedMinutes) 
-                  },
-                  { 
-                    label: (
-                      <Tooltip title="Total time passed since the complaint was created">
-                        Elapsed Time <ClockCircleOutlined style={{ fontSize: '10px' }} />
-                      </Tooltip>
-                    ), 
-                    value: formatDuration(sla.totalElapsedMinutes), 
-                    color: sla.totalElapsedMinutes > sla.totalAllowedMinutes ? '#ff4d4f' : '#262626' 
-                  },
-                  { 
-                    label: 'Remaining Time', 
-                    value: formatDuration(sla.remainingMinutes), 
-                    color: sla.remainingMinutes <= 0 ? '#ff4d4f' : '#52c41a' 
-                  },
-                ].map((item, idx) => (
-                  <div key={idx} style={{ 
-                    padding: '12px 16px', 
-                    background: '#fafafa', 
-                    borderRadius: '6px', 
-                    border: '1px solid #f0f0f0',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center'
-                  }}>
-                    <div style={{ fontSize: '11px', color: '#8c8c8c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>{item.label}</div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, color: item.color || '#262626' }}>
-                      {item.isTag ? (
-                        <Tag color={(SLA_STATUS_CONFIG[sla.slaStatus] || {}).tag || 'default'} style={{ margin: 0 }}>{item.value}</Tag>
-                      ) : item.value}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            ))}
+          </div>
 
-              <div style={{ marginTop: '24px' }}>
-                <div style={{ fontSize: '16px', fontWeight: 600, color: BRAND_COLORS.primary, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <DashboardOutlined /> Time Spent Per Department
-                </div>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  {[
-                    { label: 'Branch Staff', value: slaReport?.laneMetrics?.branchStaffDuration ?? sla?.branchStaffDuration, color: '#1890ff' },
-                    { label: 'CMD', value: slaReport?.laneMetrics?.cmdDuration ?? sla?.cmdDuration, color: '#722ed1' },
-                    { label: 'Audit', value: slaReport?.laneMetrics?.auditDuration ?? sla?.auditDuration, color: '#fa8c16' },
-                    { label: 'Work Unit', value: slaReport?.laneMetrics?.departmentDuration ?? sla?.departmentDuration, color: '#52c41a' },
-                    { label: 'Service Quality', value: slaReport?.laneMetrics?.serviceQualityDuration ?? sla?.serviceQualityDuration, color: '#eb2f96' },
-                  ].map((lane, idx) => (
-                    <div key={idx} style={{ 
-                      flex: '1 1 150px', 
-                      background: '#fafafa', 
-                      border: '1px solid #f0f0f0', 
-                      borderLeft: `4px solid ${lane.color}`, 
-                      padding: '12px 16px', 
-                      borderRadius: '6px',
-                    }}>
-                      <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>{lane.label}</div>
-                      <div style={{ fontSize: '16px', fontWeight: 600, color: '#333' }}>
-                        {formatDuration(lane.value || 0)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          <div style={{ marginTop: '24px' }}>
+            <div style={{ fontSize: '16px', fontWeight: 600, color: BRAND_COLORS.primary, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <DashboardOutlined /> Time Spent Per Department
             </div>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              {[
+                { label: 'Branch Staff', value: slaReport?.laneMetrics?.branchStaffDuration ?? sla?.branchStaffDuration, color: '#1890ff' },
+                { label: 'CMD', value: slaReport?.laneMetrics?.cmdDuration ?? sla?.cmdDuration, color: '#722ed1' },
+                { label: 'Audit', value: slaReport?.laneMetrics?.auditDuration ?? sla?.auditDuration, color: '#fa8c16' },
+                { label: 'Work Unit', value: slaReport?.laneMetrics?.departmentDuration ?? sla?.departmentDuration, color: '#52c41a' },
+                { label: 'Service Quality', value: slaReport?.laneMetrics?.serviceQualityDuration ?? sla?.serviceQualityDuration, color: '#eb2f96' },
+              ].map((lane, idx) => (
+                <div key={idx} style={{
+                  flex: '1 1 150px',
+                  background: '#fafafa',
+                  border: '1px solid #f0f0f0',
+                  borderLeft: `4px solid ${lane.color}`,
+                  padding: '12px 16px',
+                  borderRadius: '6px',
+                }}>
+                  <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>{lane.label}</div>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: '#333' }}>
+                    {formatDuration(lane.value || 0)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
         {/* Task Time Tracking */}
         {slaReport && slaReport.taskTracking && slaReport.taskTracking.length > 0 && (
@@ -504,8 +488,18 @@ function AdminDashboard() {
   const uniqueActors = [...new Set(logs.map(log => log.actor).filter(Boolean))];
 
   // ─── Real-time Analytics Calculations ───
-  const totalComplaints = slaMetrics.length;
-  const resolvedComplaints = slaMetrics.filter(m => m.resolvedAt !== null);
+  // Filter metrics based on complaints currently visible in the main table (groupedLogs)
+  // This ensures the analytics dynamically update to match any and all applied filters (Date Range, Ticket ID, Actor, Action, etc.)
+  const visibleComplaintIds = new Set(groupedLogs.map(log => log.complaintId));
+
+  const filteredMetrics = slaMetrics.filter(m => {
+    const isFilterApplied = filters.action || filters.actor || filters.complaintId || (filters.dateRange && filters.dateRange.length === 2);
+    if (!isFilterApplied) return true;
+    return visibleComplaintIds.has(m.complaintId);
+  });
+
+  const totalComplaints = filteredMetrics.length;
+  const resolvedComplaints = filteredMetrics.filter(m => m.resolvedAt !== null);
   const resolvedCount = resolvedComplaints.length;
   const activeCount = totalComplaints - resolvedCount;
 
@@ -526,7 +520,7 @@ function AdminDashboard() {
   };
 
   const categoryData = Object.keys(categoriesMap).map(key => {
-    const count = slaMetrics.filter(m => m.complaintCategory === key).length;
+    const count = filteredMetrics.filter(m => m.complaintCategory === key).length;
     return {
       key,
       name: categoriesMap[key],
@@ -540,7 +534,7 @@ function AdminDashboard() {
       <div style={{ padding: '12px 0', maxWidth: '100%', margin: '0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <Title level={2} style={{ margin: 0, color: BRAND_COLORS.primary }}>
-            Audit Logs & SLA Dashboard
+            Audit Logs
           </Title>
           <Space>
             <Button
@@ -568,7 +562,7 @@ function AdminDashboard() {
           <Row gutter={[16, 16]}>
             {/* Volume Summary */}
             <Col xs={24} md={8}>
-              <Card 
+              <Card
                 title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><DashboardOutlined /> Volume Summary</span>}
                 bordered={true}
                 style={{ height: '100%', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
@@ -667,48 +661,9 @@ function AdminDashboard() {
               </Card>
             </Col>
 
-            {/* Resolved SLA Performance */}
-            <Col xs={24} md={8}>
-              <Card 
-                title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><ClockCircleOutlined /> SLA Compliance (Resolved)</span>}
-                bordered={true}
-                style={{ height: '100%', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
-              >
-                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>On-Time Resolution Rate</span>
-                  <strong style={{ fontSize: '18px', color: resolvedCount > 0 && (resolvedOnTime / resolvedCount) >= 0.8 ? '#52c41a' : '#faad14' }}>
-                    {resolvedCount > 0 ? Math.round((resolvedOnTime / resolvedCount) * 100) : 0}%
-                  </strong>
-                </div>
-                <Progress 
-                  percent={resolvedCount > 0 ? Math.round((resolvedOnTime / resolvedCount) * 100) : 0} 
-                  strokeColor={{ '0%': '#faad14', '100%': '#52c41a' }}
-                  status="active"
-                  style={{ marginBottom: '20px' }}
-                />
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#52c41a', display: 'inline-block' }}></span>
-                      Resolved On-Time
-                    </span>
-                    <strong>{resolvedOnTime}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff4d4f', display: 'inline-block' }}></span>
-                      Resolved Breached / Overdue
-                    </span>
-                    <strong>{resolvedBreached}</strong>
-                  </div>
-                </div>
-              </Card>
-            </Col>
-
             {/* Complaints by Category */}
             <Col xs={24} md={8}>
-              <Card 
+              <Card
                 title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><FilterOutlined /> Complaints by Category</span>}
                 bordered={true}
                 bodyStyle={{ padding: '12px 24px 24px 24px' }}
@@ -724,18 +679,57 @@ function AdminDashboard() {
                           <span style={{ fontWeight: 500 }}>{cat.name}</span>
                           <span style={{ color: '#8c8c8c' }}>{cat.count} ({cat.percent}%)</span>
                         </div>
-                        <Progress 
-                          percent={cat.percent} 
-                          size="small" 
-                          showInfo={false} 
+                        <Progress
+                          percent={cat.percent}
+                          size="small"
+                          showInfo={false}
                           strokeColor={
-                            cat.key === 'fraud' || cat.key === 'financial' ? '#cf1322' : 
-                            cat.key === 'technical' || cat.key === 'mobile' ? '#1890ff' : '#fa8c16'
+                            cat.key === 'fraud' || cat.key === 'financial' ? '#cf1322' :
+                              cat.key === 'technical' || cat.key === 'mobile' ? '#1890ff' : '#fa8c16'
                           }
                         />
                       </div>
                     ))
                   )}
+                </div>
+              </Card>
+            </Col>
+
+            {/* Resolved SLA Performance */}
+            <Col xs={24} md={8}>
+              <Card
+                title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><ClockCircleOutlined /> SLA Compliance (Resolved)</span>}
+                bordered={true}
+                style={{ height: '100%', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
+              >
+                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>On-Time Resolution Rate</span>
+                  <strong style={{ fontSize: '18px', color: resolvedCount > 0 && (resolvedOnTime / resolvedCount) >= 0.8 ? '#52c41a' : '#faad14' }}>
+                    {resolvedCount > 0 ? Math.round((resolvedOnTime / resolvedCount) * 100) : 0}%
+                  </strong>
+                </div>
+                <Progress
+                  percent={resolvedCount > 0 ? Math.round((resolvedOnTime / resolvedCount) * 100) : 0}
+                  strokeColor={{ '0%': '#faad14', '100%': '#52c41a' }}
+                  status="active"
+                  style={{ marginBottom: '20px' }}
+                />
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#52c41a', display: 'inline-block' }}></span>
+                      Resolved On-Time
+                    </span>
+                    <strong>{resolvedOnTime}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff4d4f', display: 'inline-block' }}></span>
+                      Resolved Breached / Overdue
+                    </span>
+                    <strong>{resolvedBreached}</strong>
+                  </div>
                 </div>
               </Card>
             </Col>

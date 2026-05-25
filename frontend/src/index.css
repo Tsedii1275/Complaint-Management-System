@@ -331,3 +331,20 @@ h1, h2, h3, h4, h5, h6 {
   color: #52c41a;
   border: 1px solid #b7eb8f;
 }
+
+/* Premium Card Layout Divider */
+.card-vertical-divider {
+  border-left: 1.5px dashed #e8e8e8;
+  padding-left: 32px;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .card-vertical-divider {
+    border-left: none;
+    padding-left: 0;
+    margin-top: 16px;
+    border-top: 1.5px dashed #e8e8e8;
+    padding-top: 24px;
+  }
+}

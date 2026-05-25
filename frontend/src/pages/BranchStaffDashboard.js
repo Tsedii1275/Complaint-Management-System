@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Button, Tag, Empty, Alert, Form, Input, Checkbox, Space, Row, Col, Modal, Select } from 'antd';
-import { DeleteOutlined, ArrowLeftOutlined, CheckCircleOutlined, ExclamationCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { Card, Typography, Button, Tag, Empty, Alert, Form, Input, Checkbox, Space, Row, Col, Modal, Select, Progress, Tooltip } from 'antd';
+import { DeleteOutlined, ArrowLeftOutlined, CheckCircleOutlined, ExclamationCircleOutlined, PlusOutlined, DashboardOutlined, FilterOutlined } from '@ant-design/icons';
 import DashboardLayout from '../components/DashboardLayout';
 import ApiService from '../services/api';
 import { BRAND_COLORS } from '../constants/theme';
@@ -20,6 +20,8 @@ function BranchStaffDashboard() {
   const [message, setMessage] = useState('');
   const [clearingTasks, setClearingTasks] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [slaMetrics, setSlaMetrics] = useState([]);
+  const [slaLoading, setSlaLoading] = useState(false);
   const [staffFormData, setStaffFormData] = useState({
     customerName: '',
     email: '',
@@ -34,15 +36,28 @@ function BranchStaffDashboard() {
 
   useEffect(() => {
     loadTasks();
+    fetchSlaMetrics();
   }, []);
+
+  const fetchSlaMetrics = async () => {
+    try {
+      setSlaLoading(true);
+      const data = await ApiService.getAllSlaMetrics();
+      setSlaMetrics(data || []);
+    } catch (err) {
+      console.error('Failed to load SLA metrics:', err);
+    } finally {
+      setSlaLoading(false);
+    }
+  };
 
   const loadTasks = async () => {
     try {
       setLoading(true);
       const tasksData = await ApiService.getEnrichedTasks();
-      const branchTasks = tasksData.filter(task => 
+      const branchTasks = tasksData.filter(task =>
         task.name && (
-          task.name.includes('First Contact Resolution') || 
+          task.name.includes('First Contact Resolution') ||
           task.name.includes('FIrst Contact Resolution') ||
           task.name.includes('Register Complaint') ||
           task.definitionKey === 'FormTask_72'
@@ -64,17 +79,17 @@ function BranchStaffDashboard() {
         const allTasks = await ApiService.getTasks();
         // Use a Set to collect unique processInstanceIds to avoid redundant calls
         const uniqueProcessIds = [...new Set(allTasks.map(task => task.processInstanceId))];
-        
-        const clearPromises = uniqueProcessIds.map(id => 
+
+        const clearPromises = uniqueProcessIds.map(id =>
           ApiService.deleteProcessInstance(id)
         );
-        
+
         await Promise.all(clearPromises);
         setMessage('All tasks cleared successfully!');
         setSelectedTask(null);
         setFormData({ isFCR: false, fcrComments: '' });
         await loadTasks();
-        
+
         setTimeout(() => setMessage(''), 3000);
       } catch (error) {
         setMessage('Failed to clear some tasks');
@@ -118,13 +133,13 @@ function BranchStaffDashboard() {
       };
 
       await ApiService.completeTask(selectedTask.id, variables);
-      
+
       if (formData.isFCR) {
         setMessage('Task completed! Complaint resolved and customer will be notified.');
       } else {
         setMessage('Task completed! Complaint has been escalated to CMD for screening.');
       }
-      
+
       setFormData({ isFCR: false, fcrComments: '' });
       setSelectedTask(null);
       await loadTasks();
@@ -140,7 +155,7 @@ function BranchStaffDashboard() {
     try {
       const values = await modalForm.validateFields();
       setIsSubmitting(true);
-      
+
       let phone = values.phone;
       if (phone.startsWith('09')) phone = '+251' + phone.substring(1);
       else if (phone.startsWith('9')) phone = '+251' + phone;
@@ -162,7 +177,7 @@ function BranchStaffDashboard() {
       };
 
       await ApiService.staffSubmitComplaint(payload);
-      
+
       setMessage(values.isFCR ? 'Complaint registered and resolved successfully!' : 'Complaint registered successfully and sent to CMD.');
       setIsModalOpen(false);
       modalForm.resetFields();
@@ -176,7 +191,7 @@ function BranchStaffDashboard() {
         isFCR: false,
         fcrComments: ''
       });
-      
+
       // Small delay to allow Flowable to finish the transaction and advance the process
       setTimeout(() => {
         loadTasks();
@@ -190,13 +205,12 @@ function BranchStaffDashboard() {
       setIsSubmitting(false);
     }
   };
-
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
       <Card loading={true} style={{ width: '100%', maxWidth: '600px' }} />
     </div>
   );
-  
+
   if (error) return (
     <Alert
       message="Error"
@@ -206,7 +220,6 @@ function BranchStaffDashboard() {
       style={{ margin: '20px' }}
     />
   );
-
   const getPriorityColor = (priority) => {
     switch (priority?.toLowerCase()) {
       case 'p1': return 'red';
@@ -215,7 +228,6 @@ function BranchStaffDashboard() {
       default: return 'blue';
     }
   };
-
   const getSlaStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'overdue': return 'error';
@@ -257,7 +269,7 @@ function BranchStaffDashboard() {
             </Button>
           </Space>
         </div>
-        
+
         {message && (
           <Alert
             message={message.includes('success') ? 'Success' : 'Information'}
@@ -269,6 +281,143 @@ function BranchStaffDashboard() {
             onClose={() => setMessage('')}
           />
         )}
+
+        {/* Analytics Summary */}
+        {(() => {
+          const totalComplaints = slaMetrics.length;
+
+          const categoriesMap = {
+            financial: { label: 'Financial', color: '#cf1322' },
+            atm: { label: 'ATM', color: '#1890ff' },
+            technical: { label: 'Technical', color: '#722ed1' },
+            account: { label: 'Account', color: '#52c41a' },
+            loan: { label: 'Loan', color: '#fa8c16' },
+            branch: { label: 'Branch', color: '#eb2f96' },
+            mobile: { label: 'Mobile', color: '#13c2c2' },
+            fraud: { label: 'Fraud', color: '#f5222d' },
+            general: { label: 'General', color: '#faad14' }
+          };
+
+          const categoryData = Object.keys(categoriesMap).map(key => {
+            const count = slaMetrics.filter(m => m.complaintCategory === key).length;
+            return {
+              key,
+              name: categoriesMap[key].label,
+              color: categoriesMap[key].color,
+              count,
+              percent: totalComplaints > 0 ? (count / totalComplaints) * 100 : 0
+            };
+          }).sort((a, b) => b.count - a.count);
+
+          const radius = 48;
+          const circumference = 2 * Math.PI * radius;
+          let currentRotation = -90; // Initialize rotation angle
+
+          return (
+            <div style={{ marginBottom: '24px' }}>
+              <Card
+                title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><DashboardOutlined /> Complaint Category Analytics</span>}
+                bordered={true}
+                loading={slaLoading}
+                style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
+              >
+                <Row gutter={[32, 24]} align="middle">
+                  {/* Dynamic Category Donut Chart */}
+                  <Col xs={24} md={12} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <div style={{ position: 'relative', width: '140px', height: '140px', flexShrink: 0 }}>
+                      <svg width="100%" height="100%" viewBox="0 0 120 120">
+                        {/* Background base circle */}
+                        <circle
+                          cx="60"
+                          cy="60"
+                          r={radius}
+                          fill="transparent"
+                          stroke="#f0f0f0"
+                          strokeWidth="12"
+                        />
+                        {totalComplaints > 0 && categoryData.filter(c => c.count > 0).map((cat) => {
+                          const strokeDashoffset = circumference - (cat.percent / 100) * circumference;
+                          const rotation = currentRotation;
+                          currentRotation += (cat.percent / 100) * 360; // Shift start of next slice
+                          return (
+                            <Tooltip
+                              key={cat.key}
+                              title={<div style={{ textAlign: 'center' }}><strong>{cat.name}</strong><br/>{cat.count} complaints ({Math.round(cat.percent)}%)</div>}
+                              placement="top"
+                            >
+                              <circle
+                                cx="60"
+                                cy="60"
+                                r={radius}
+                                fill="transparent"
+                                stroke={cat.color}
+                                strokeWidth="12"
+                                strokeDasharray={circumference}
+                                strokeDashoffset={strokeDashoffset}
+                                transform={`rotate(${rotation} 60 60)`}
+                                strokeLinecap="round"
+                                style={{ 
+                                  transition: 'stroke-dashoffset 0.8s ease, transform 0.8s ease, stroke-width 0.2s ease',
+                                  cursor: 'pointer'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.setAttribute('stroke-width', '15');
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.setAttribute('stroke-width', '12');
+                                }}
+                              />
+                            </Tooltip>
+                          );
+                        })}
+                      </svg>
+                      {/* Center Info Label */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        textAlign: 'center'
+                      }}>
+                        <div style={{ fontSize: '26px', fontWeight: '800', color: BRAND_COLORS.primary, lineHeight: 1 }}>
+                          {totalComplaints}
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#8c8c8c', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total</div>
+                      </div>
+                    </div>
+                  </Col>
+
+                  {/* Category Progress Breakdown */}
+                  <Col xs={24} md={12} className="card-vertical-divider">
+                    <div style={{ maxHeight: '180px', overflowY: 'auto', paddingRight: '8px' }}>
+                      {categoryData.filter(c => c.count > 0).length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '24px 0', color: '#bfbfbf' }}>No complaints registered yet</div>
+                      ) : (
+                        categoryData.filter(c => c.count > 0).map((cat, idx) => (
+                          <div key={idx} style={{ marginBottom: '10px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '2px' }}>
+                              <span style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: cat.color, display: 'inline-block' }}></span>
+                                {cat.name}
+                              </span>
+                              <span style={{ color: '#8c8c8c' }}>{cat.count} ({Math.round(cat.percent)}%)</span>
+                            </div>
+                            <Progress
+                              percent={Math.round(cat.percent)}
+                              size="small"
+                              showInfo={false}
+                              strokeColor={cat.color}
+                            />
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+            </div>
+          );
+        })()}
 
         {!selectedTask ? (
           <div>
@@ -376,7 +525,7 @@ function BranchStaffDashboard() {
                   </Space>
                 </Card>
               </Col>
-              
+
               <Col xs={24} lg={12}>
                 <Card title="Branch Resolution" className="form-section">
                   <Form onFinish={handleSubmit} layout="vertical">
@@ -454,7 +603,7 @@ function BranchStaffDashboard() {
                 </Form.Item>
               </Col>
             </Row>
-            
+
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item name="phone" label="Phone Number" rules={[{ required: true }]}>
@@ -492,7 +641,7 @@ function BranchStaffDashboard() {
                   <strong>Resolved at first contact (FCR)?</strong>
                 </Checkbox>
               </Form.Item>
-              
+
               {staffFormData.isFCR && (
                 <Form.Item name="fcrComments" label="Resolution Comments" rules={[{ required: true, message: 'Please provide resolution details' }]}>
                   <Input.TextArea rows={3} placeholder="How was this resolved?" />
