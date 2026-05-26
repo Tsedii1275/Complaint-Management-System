@@ -25,7 +25,7 @@ This system integrates a modern React frontend with a robust Spring Boot backend
 *   **Java 17+**
 *   **Spring Boot**: REST APIs, Security, Data JPA
 *   **Flowable**: Open-source BPMN 2.0 workflow engine
-*   **Database**: H2 (In-memory for dev) / PostgreSQL (Production ready)
+*   **Database**: H2 (In-memory for dev) / Mysql (Production ready)
 *   **Security**: Spring Security with JWT Authentication
 
 ### Frontend
