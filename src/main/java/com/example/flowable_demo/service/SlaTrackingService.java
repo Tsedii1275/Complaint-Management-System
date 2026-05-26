@@ -165,8 +165,8 @@ public class SlaTrackingService {
     public void recalculateSlaStatus(ComplaintSlaMetrics metrics) {
         if (metrics.getCreatedAt() == null) return;
 
-        LocalDateTime now = LocalDateTime.now();
-        long elapsedMinutes = Duration.between(metrics.getCreatedAt(), now).toMinutes();
+        LocalDateTime endTime = metrics.getResolvedAt() != null ? metrics.getResolvedAt() : LocalDateTime.now();
+        long elapsedMinutes = Duration.between(metrics.getCreatedAt(), endTime).toMinutes();
         metrics.setTotalElapsedMinutes((int) elapsedMinutes);
 
         int remaining = metrics.getTotalAllowedMinutes() - (int) elapsedMinutes;
@@ -174,18 +174,25 @@ public class SlaTrackingService {
 
         double threshold = metrics.getTotalAllowedMinutes() * 0.20; // 20% remaining
 
-        if (remaining <= 0) {
-            if (metrics.getResolvedAt() != null) {
-                // Resolved but was overdue
-                metrics.setSlaStatus("BREACHED");
+        if (metrics.getResolvedAt() != null) {
+            // Case is closed (resolved)
+            if (remaining > 0) {
+                metrics.setSlaStatus("ON_TIME");
+                metrics.setBreached(false);
             } else {
-                metrics.setSlaStatus("OVERDUE");
+                metrics.setSlaStatus("BREACHED");
+                metrics.setBreached(true);
             }
-            metrics.setBreached(true);
-        } else if (remaining <= threshold) {
-            metrics.setSlaStatus("APPROACHING");
         } else {
-            metrics.setSlaStatus("ON_TIME");
+            // Case is still active
+            if (remaining <= 0) {
+                metrics.setSlaStatus("OVERDUE");
+                metrics.setBreached(true);
+            } else if (remaining <= threshold) {
+                metrics.setSlaStatus("APPROACHING");
+            } else {
+                metrics.setSlaStatus("ON_TIME");
+            }
         }
     }
 
