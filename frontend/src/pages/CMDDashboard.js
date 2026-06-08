@@ -13,11 +13,15 @@ function CMDDashboard() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [districtsList, setDistrictsList] = useState([]);
   const [formData, setFormData] = useState({
-    complaintCategory: 'general',
     priorityLevel: 'P2',
     requiresInvestigation: false,
-    notes: ''
+    notes: '',
+    district: '',
+    branch: '',
+    department: '',
+    manager: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
@@ -25,13 +29,23 @@ function CMDDashboard() {
 
   useEffect(() => {
     loadTasks();
+    loadHierarchy();
   }, []);
+
+  const loadHierarchy = async () => {
+    try {
+      const data = await ApiService.getHierarchy();
+      setDistrictsList(data);
+    } catch (err) {
+      console.error('Failed to load hierarchy:', err);
+    }
+  };
 
   const loadTasks = async () => {
     try {
       setLoading(true);
       const tasksData = await ApiService.getEnrichedTasks();
-      const cmdTasks = tasksData.filter(task => 
+      const cmdTasks = tasksData.filter(task =>
         task.definitionKey === 'FormTask_43'
       );
       setTasks(cmdTasks);
@@ -48,16 +62,24 @@ function CMDDashboard() {
       setClearingTasks(true);
       try {
         const allTasks = await ApiService.getTasks();
-        const clearPromises = allTasks.map(task => 
+        const clearPromises = allTasks.map(task =>
           ApiService.completeTask(task.id, {})
         );
-        
+
         await Promise.all(clearPromises);
         setMessage('All tasks cleared successfully!');
         setSelectedTask(null);
-        setFormData({ complaintCategory: 'general', priorityLevel: 'P2', requiresInvestigation: false, notes: '' });
+        setFormData({
+          priorityLevel: 'P2',
+          requiresInvestigation: false,
+          notes: '',
+          district: '',
+          branch: '',
+          department: '',
+          manager: ''
+        });
         await loadTasks();
-        
+
         setTimeout(() => setMessage(''), 3000);
       } catch (error) {
         setMessage('Failed to clear some tasks');
@@ -95,6 +117,50 @@ function CMDDashboard() {
     }));
   };
 
+  const handleDistrictChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      district: value,
+      branch: '',
+      department: '',
+      manager: ''
+    }));
+  };
+
+  const handleBranchChange = (value) => {
+    const distObj = districtsList.find(d => d.name === formData.district);
+    const branchObj = distObj?.branches.find(b => b.name === value);
+    const defaultManager = branchObj ? branchObj.managerName : '';
+    setFormData(prev => ({
+      ...prev,
+      branch: value,
+      department: '',
+      manager: defaultManager
+    }));
+  };
+
+  const handleDepartmentChange = (value) => {
+    const distObj = districtsList.find(d => d.name === formData.district);
+    const branchObj = distObj?.branches.find(b => b.name === formData.branch);
+    
+    if (!value) {
+      setFormData(prev => ({
+        ...prev,
+        department: '',
+        manager: branchObj ? branchObj.managerName : ''
+      }));
+      return;
+    }
+    
+    const deptObj = branchObj?.departments.find(dept => dept.name === value);
+    const manager = deptObj ? `${deptObj.managerName} (${deptObj.name})` : '';
+    setFormData(prev => ({
+      ...prev,
+      department: value,
+      manager: manager
+    }));
+  };
+
   const handleSubmit = async (values) => {
     // Ant Design onFinish passes form values, not an event
     if (!selectedTask) return;
@@ -105,15 +171,23 @@ function CMDDashboard() {
     try {
       const variables = {
         ...formData,
-        complaintCategory: formData.complaintCategory,
+        complaintCategory: 'general',
         priorityLevel: formData.priorityLevel,
         requiresInvestigation: formData.requiresInvestigation
       };
 
       await ApiService.completeTask(selectedTask.id, variables);
-      setMessage('Task completed! Complaint categorized and assigned to appropriate department.');
-      
-      setFormData({ complaintCategory: 'general', priorityLevel: 'P2', requiresInvestigation: false, notes: '' });
+      setMessage('Task completed! Complaint categorized and assigned to appropriate department/manager.');
+
+      setFormData({
+        priorityLevel: 'P2',
+        requiresInvestigation: false,
+        notes: '',
+        district: '',
+        branch: '',
+        department: '',
+        manager: ''
+      });
       setSelectedTask(null);
       await loadTasks();
     } catch (error) {
@@ -129,7 +203,7 @@ function CMDDashboard() {
       <Card loading={true} style={{ width: '100%', maxWidth: '600px' }} />
     </div>
   );
-  
+
   if (error) return (
     <Alert
       message="Error"
@@ -180,7 +254,7 @@ function CMDDashboard() {
             Clear All Tasks
           </Button>
         </div>
-        
+
         {message && (
           <Alert
             message={message.includes('success') ? 'Success' : 'Information'}
@@ -299,27 +373,69 @@ function CMDDashboard() {
                   </Space>
                 </Card>
               </Col>
-              
+
               <Col xs={24} lg={12}>
                 <Card title="CMD Screening" className="form-section">
                   <Form onFinish={handleSubmit} layout="vertical">
-                    <Form.Item label="Complaint Category" required>
+                    <Form.Item label="District" required>
                       <Select
-                        value={formData.complaintCategory}
-                        onChange={(value) => handleSelectChange('complaintCategory', value)}
+                        placeholder="Select District"
+                        value={formData.district || undefined}
+                        onChange={handleDistrictChange}
                         style={{ width: '100%' }}
                       >
-                        <Option value="financial">Financial - Banking Services</Option>
-                        <Option value="atm">ATM - Card Services</Option>
-                        <Option value="technical">Technical - System Issues</Option>
-                        <Option value="account">Account - Management</Option>
-                        <Option value="loan">Loan - Credit Services</Option>
-                        <Option value="branch">Branch - Customer Service</Option>
-                        <Option value="mobile">Mobile - App/Digital Banking</Option>
-                        <Option value="fraud">Fraud - Security Issues</Option>
-                        <Option value="general">General - Other Issues</Option>
+                        {districtsList.map(dist => (
+                          <Option key={dist.id} value={dist.name}>{dist.name}</Option>
+                        ))}
                       </Select>
                     </Form.Item>
+
+                    <Form.Item label="Branch" required>
+                      <Select
+                        placeholder="Select Branch"
+                        value={formData.branch || undefined}
+                        onChange={handleBranchChange}
+                        disabled={!formData.district}
+                        style={{ width: '100%' }}
+                      >
+                        {formData.district && districtsList.find(d => d.name === formData.district)?.branches.map(br => (
+                          <Option key={br.id} value={br.name}>{br.name} ({br.code})</Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+
+                    {formData.branch && (
+                      <Row gutter={16}>
+                        <Col span={12}>
+                          <Form.Item label="Department (Optional)">
+                            <Select
+                              placeholder="Select Department"
+                              value={formData.department || undefined}
+                              onChange={handleDepartmentChange}
+                              style={{ width: '100%' }}
+                              allowClear
+                            >
+                              {districtsList
+                                .find(d => d.name === formData.district)
+                                ?.branches.find(b => b.name === formData.branch)
+                                ?.departments.map(dept => (
+                                  <Option key={dept.id} value={dept.name}>{dept.name}</Option>
+                                ))}
+                            </Select>
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item label="Department / Branch Manager">
+                            <Input
+                              value={formData.manager}
+                              readOnly
+                              placeholder="Manager will be populated automatically"
+                              style={{ backgroundColor: '#f5f5f5', color: '#000000d9' }}
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    )}
 
                     <Form.Item label="Priority Level" required>
                       <Select

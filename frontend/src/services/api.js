@@ -134,6 +134,11 @@ class ApiService {
   async getTaskTracking(processInstanceId) {
     return this.get(`/api/audit/sla/tasks/${processInstanceId}`);
   }
+
+  // Get Districts, Branches, and Departments hierarchy
+  async getHierarchy() {
+    return this.get('/api/hierarchy');
+  }
 }
 
 export default new ApiService();

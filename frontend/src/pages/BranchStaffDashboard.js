@@ -29,6 +29,7 @@ function BranchStaffDashboard() {
     accountNumber: '',
     complaintCategory: 'general',
     complaintDescription: '',
+    channel: 'branch',
     isFCR: false,
     fcrComments: ''
   });
@@ -168,7 +169,7 @@ function BranchStaffDashboard() {
           accountNumber: values.accountNumber || ''
         },
         complaint: {
-          channel: 'Branch',
+          channel: values.channel || 'branch',
           category: values.complaintCategory,
           description: values.complaintDescription
         },
@@ -188,6 +189,7 @@ function BranchStaffDashboard() {
         accountNumber: '',
         complaintCategory: 'general',
         complaintDescription: '',
+        channel: 'branch',
         isFCR: false,
         fcrComments: ''
       });
@@ -282,8 +284,8 @@ function BranchStaffDashboard() {
           />
         )}
 
-        {/* Analytics Summary */}
-        {(() => {
+        {/* Analytics Summary — hidden when a task is selected */}
+        {!selectedTask && (() => {
           // Filter to active/unresolved complaints that correspond strictly to current visible tasks
           const activeTaskComplaintIds = new Set(tasks.map(t => t.complaintId).filter(Boolean));
           const activeSlaMetrics = slaMetrics.filter(m => activeTaskComplaintIds.has(m.complaintId));
@@ -637,6 +639,26 @@ function BranchStaffDashboard() {
                 <Select.Option value="internet_banking">Internet Banking</Select.Option>
                 <Select.Option value="super_app">Super App</Select.Option>
                 <Select.Option value="general">General - Other Issues</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item name="channel" label="Channel" rules={[{ required: true, message: 'Please select a channel' }]}>
+              <Select placeholder="Select channel">
+                <Select.Option value="branch">Walk-In (Branch)</Select.Option>
+                <Select.Option value="phone">Phone Call</Select.Option>
+                <Select.Option value="email">Email</Select.Option>
+                <Select.Option value="letter">Letter / Written</Select.Option>
+                <Select.OptGroup label="Social Media">
+                  <Select.Option value="facebook">Facebook</Select.Option>
+                  <Select.Option value="telegram">Telegram</Select.Option>
+                  <Select.Option value="twitter">Twitter / X</Select.Option>
+                  <Select.Option value="instagram">Instagram</Select.Option>
+                  <Select.Option value="whatsapp">WhatsApp</Select.Option>
+                  <Select.Option value="linkedin">LinkedIn</Select.Option>
+                  <Select.Option value="youtube">YouTube</Select.Option>
+                  <Select.Option value="tiktok">TikTok</Select.Option>
+                </Select.OptGroup>
+                <Select.Option value="web">Web Portal</Select.Option>
               </Select>
             </Form.Item>
 
