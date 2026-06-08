@@ -35,6 +35,9 @@ public class SlaTrackingService {
         CATEGORY_SLA_MAP.put("loan", 720);           // 12 hours
         CATEGORY_SLA_MAP.put("transfer", 240);       // 4 hours
         CATEGORY_SLA_MAP.put("technical", 360);      // 6 hours
+        CATEGORY_SLA_MAP.put("employee_behaviour", 480); // 8 hours
+        CATEGORY_SLA_MAP.put("internet_banking", 480);   // 8 hours
+        CATEGORY_SLA_MAP.put("super_app", 480);          // 8 hours
         CATEGORY_SLA_MAP.put("general", 480);        // 8 hours (default)
     }
 

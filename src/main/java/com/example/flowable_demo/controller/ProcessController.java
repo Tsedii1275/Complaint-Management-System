@@ -95,6 +95,12 @@ public class ProcessController {
         complaintVars.put("channel", channel);
         complaintVars.put("description", description);
         complaintVars.put("category", category);
+        if (complaint.get("branch") != null) {
+            complaintVars.put("branch", complaint.get("branch"));
+        }
+        if (complaint.get("date") != null) {
+            complaintVars.put("date", complaint.get("date"));
+        }
 
         // Generate ticket immediately
         String ticket = "CM-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))

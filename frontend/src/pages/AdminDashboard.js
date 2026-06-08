@@ -516,6 +516,9 @@ function AdminDashboard() {
     branch: { label: 'Branch', color: '#eb2f96' },
     mobile: { label: 'Mobile', color: '#13c2c2' },
     fraud: { label: 'Fraud', color: '#f5222d' },
+    employee_behaviour: { label: 'Employee Behaviour', color: '#fa541c' },
+    internet_banking: { label: 'Internet Banking', color: '#0050b3' },
+    super_app: { label: 'Super App', color: '#ff4d4f' },
     general: { label: 'General', color: '#faad14' }
   };
 

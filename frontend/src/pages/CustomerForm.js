@@ -11,7 +11,9 @@ function CustomerForm() {
     phone: '',
     accountNumber: '',
     complaintCategory: 'general',
-    complaintDescription: ''
+    complaintDescription: '',
+    branch: '',
+    date: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [messageText, setMessageText] = useState('');
@@ -19,6 +21,11 @@ function CustomerForm() {
   const [language, setLanguage] = useState('english');
   const [errors, setErrors] = useState({});
   const [countryCode, setCountryCode] = useState('+251');
+
+  // Ethiopian Date states
+  const [ethMonth, setEthMonth] = useState('መስከረም');
+  const [ethDay, setEthDay] = useState('1');
+  const [ethYear, setEthYear] = useState('2018');
   const countryCodes = [
     { code: '+251', flag: '🇪🇹', name: 'Ethiopia' },
     { code: '+1', flag: '🇺🇸', name: 'USA' },
@@ -41,6 +48,9 @@ function CustomerForm() {
       accountNumber: 'Account Number',
       complaintDescription: 'Complaint Description',
       complaintCategory: 'Complaint Category',
+      branch: 'Branch',
+      selectBranch: 'Select your branch',
+      complaintDate: 'Complaint Date',
       submitButton: 'Submit Complaint',
       categories: {
         financial: 'Financial - Banking Services',
@@ -51,14 +61,10 @@ function CustomerForm() {
         branch: 'Branch - Customer Service',
         mobile: 'Mobile - App/Digital Banking',
         fraud: 'Fraud - Security Issues',
+        employee_behaviour: 'Employee Behaviour - Staff Related',
+        internet_banking: 'Internet Banking',
+        super_app: 'Super App',
         general: 'General - Other Issues'
-      },
-      placeholders: {
-        customerName: 'Enter your full name',
-        email: 'Enter your email address',
-        phoneNumber: '9XXXXXXXX',
-        accountNumber: 'Enter your account number',
-        complaintDescription: 'Describe your complaint in detail'
       }
     },
     amharic: {
@@ -71,6 +77,9 @@ function CustomerForm() {
       accountNumber: 'የአካውንት ቁጥር',
       complaintDescription: 'የቅሬታው ዝርዝር መግለጫ',
       complaintCategory: 'የቅሬታ አይነት',
+      branch: 'ቅርንጫፍ',
+      selectBranch: 'ቅርንጫፍዎን ይምረጡ',
+      complaintDate: 'የቅሬታ ቀን',
       submitButton: 'ቅሬታውን ያስገቡ',
       categories: {
         financial: 'ፋይናንሻል - የባንክ አገልግሎቶች',
@@ -81,14 +90,10 @@ function CustomerForm() {
         branch: 'ቅርንጫፍ - የደንበኞች አገልግሎት',
         mobile: 'ሞባይል - አፕ/ዲጂታል ባንኪንግ',
         fraud: 'ማጭበርበር - የደህንነት ጉዳዮች',
+        employee_behaviour: 'የሰራተኞችን ባህሪ በተመለከተ',
+        internet_banking: 'ኢንተርኔት ባንኪንግ',
+        super_app: 'ሱፐር አፕ',
         general: 'አጠቃላይ - ሌሎች ጉዳዮች'
-      },
-      placeholders: {
-        customerName: 'ሙሉ ስምዎን እዚህ ያስገቡ',
-        email: 'ኢሜይል አድራሻዎን ያስገቡ',
-        phoneNumber: '9XXXXXXXX',
-        accountNumber: 'የአካውንት ቁጥርዎን ያስገቡ',
-        complaintDescription: 'የቅሬታዎን ዝርዝር እዚህ ይግለጹ'
       }
     }
   };
@@ -116,6 +121,24 @@ function CustomerForm() {
     // Disabled restricted test call to avoid 401 errors for customers
     console.log('Customer form initialized');
   }, []);
+
+  // Synchronize Ethiopian date states to formData.date
+  useEffect(() => {
+    if (language === 'amharic') {
+      setFormData(prev => ({
+        ...prev,
+        date: `${ethMonth} ${ethDay}, ${ethYear} (Ethiopian)`
+      }));
+    }
+  }, [ethMonth, ethDay, ethYear, language]);
+
+  // Handler for Gregorian date picker
+  const handleGregorianDateChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      date: e.target.value
+    }));
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -187,7 +210,9 @@ function CustomerForm() {
         complaint: {
           channel: 'web',
           category: formData.complaintCategory,
-          description: formData.complaintDescription
+          description: formData.complaintDescription,
+          branch: formData.branch,
+          date: formData.date
         }
       };
 
@@ -204,7 +229,9 @@ function CustomerForm() {
         phone: '',
         accountNumber: '',
         complaintCategory: 'general',
-        complaintDescription: ''
+        complaintDescription: '',
+        branch: '',
+        date: ''
       });
       
       console.log('Complaint submitted successfully:', response);
@@ -328,7 +355,6 @@ function CustomerForm() {
                     outline: 'none',
                     transition: 'border-color 0.2s'
                   }}
-                  placeholder={t.placeholders.customerName}
                 />
               </div>
               <div style={{ flex: 1 }}>
@@ -350,7 +376,6 @@ function CustomerForm() {
                     outline: 'none',
                     transition: 'border-color 0.2s'
                   }}
-                  placeholder={t.placeholders.email}
                 />
               </div>
             </div>
@@ -391,7 +416,6 @@ function CustomerForm() {
                     value={formData.phone}
                     onChange={handleInputChange}
                     required
-                    placeholder={t.placeholders.phoneNumber}
                     style={{
                       flex: 1,
                       padding: '12px 16px',
@@ -423,7 +447,6 @@ function CustomerForm() {
                     transition: 'border-color 0.2s',
                     outline: 'none'
                   }}
-                  placeholder={t.placeholders.accountNumber}
                 />
                 {errors.accountNumber && (
                   <div style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px' }}>
@@ -433,7 +456,120 @@ function CustomerForm() {
               </div>
             </div>
 
-            {/* Row 3: Category */}
+            {/* Row 3: Branch and Date */}
+            <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
+                  {t.branch} <span style={{ color: 'red' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  name="branch"
+                  value={formData.branch}
+                  onChange={handleInputChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '1px solid #dcdcdc',
+                    borderRadius: '4px',
+                    fontSize: '15px',
+                    outline: 'none',
+                    transition: 'border-color 0.2s'
+                  }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
+                  {t.complaintDate} <span style={{ color: 'red' }}>*</span>
+                </label>
+                {language === 'english' ? (
+                  <input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleGregorianDateChange}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      border: '1px solid #dcdcdc',
+                      borderRadius: '4px',
+                      fontSize: '15px',
+                      outline: 'none',
+                      backgroundColor: 'white'
+                    }}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <select
+                      value={ethMonth}
+                      onChange={(e) => setEthMonth(e.target.value)}
+                      style={{
+                        flex: 2,
+                        padding: '12px 8px',
+                        border: '1px solid #dcdcdc',
+                        borderRadius: '4px',
+                        fontSize: '14px',
+                        backgroundColor: 'white',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="መስከረም">መስከረም</option>
+                      <option value="ጥቅምት">ጥቅምት</option>
+                      <option value="ኅዳር">ኅዳር</option>
+                      <option value="ታኅሣሥ">ታኅሣሥ</option>
+                      <option value="ጥር">ጥር</option>
+                      <option value="የካቲት">የካቲት</option>
+                      <option value="መጋቢት">መጋቢት</option>
+                      <option value="ሚያዝያ">ሚያዝያ</option>
+                      <option value="ግንቦት">ግንቦት</option>
+                      <option value="ሰኔ">ሰኔ</option>
+                      <option value="ሐምሌ">ሐምሌ</option>
+                      <option value="ነሐሴ">ነሐሴ</option>
+                      <option value="ጳጉሜ">ጳጉሜ</option>
+                    </select>
+                    <select
+                      value={ethDay}
+                      onChange={(e) => setEthDay(e.target.value)}
+                      style={{
+                        flex: 1.2,
+                        padding: '12px 8px',
+                        border: '1px solid #dcdcdc',
+                        borderRadius: '4px',
+                        fontSize: '14px',
+                        backgroundColor: 'white',
+                        outline: 'none'
+                      }}
+                    >
+                      {Array.from({ length: ethMonth === 'ጳጉሜ' ? 6 : 30 }, (_, i) => String(i + 1)).map(day => (
+                        <option key={day} value={day}>{day}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={ethYear}
+                      onChange={(e) => setEthYear(e.target.value)}
+                      style={{
+                        flex: 1.5,
+                        padding: '12px 8px',
+                        border: '1px solid #dcdcdc',
+                        borderRadius: '4px',
+                        fontSize: '14px',
+                        backgroundColor: 'white',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="2018">2018</option>
+                      <option value="2017">2017</option>
+                      <option value="2016">2016</option>
+                      <option value="2015">2015</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Row 4: Category */}
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
                 {t.complaintCategory} <span style={{ color: 'red' }}>*</span>
@@ -462,11 +598,14 @@ function CustomerForm() {
                 <option value="branch">{t.categories.branch}</option>
                 <option value="mobile">{t.categories.mobile}</option>
                 <option value="fraud">{t.categories.fraud}</option>
+                <option value="employee_behaviour">{t.categories.employee_behaviour}</option>
+                <option value="internet_banking">{t.categories.internet_banking}</option>
+                <option value="super_app">{t.categories.super_app}</option>
                 <option value="general">{t.categories.general}</option>
               </select>
             </div>
 
-            {/* Row 4: Description */}
+            {/* Row 5: Description */}
             <div style={{ marginBottom: '32px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
                 {t.complaintDescription} <span style={{ color: 'red' }}>*</span>
@@ -476,7 +615,6 @@ function CustomerForm() {
                 value={formData.complaintDescription}
                 onChange={handleInputChange}
                 required
-                placeholder={t.placeholders.complaintDescription}
                 rows={5}
                 style={{
                   width: '100%',
