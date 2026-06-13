@@ -503,9 +503,15 @@ function AdminDashboard() {
   const resolvedCount = resolvedComplaints.length;
   const activeCount = totalComplaints - resolvedCount;
 
-  // SLA status for resolved complaints
-  const resolvedOnTime = resolvedComplaints.filter(m => m.slaStatus === 'ON_TIME' || m.slaStatus === 'APPROACHING').length;
-  const resolvedBreached = resolvedCount - resolvedOnTime;
+  // SLA status breakdown
+  const onTimeCount = filteredMetrics.filter(m => m.slaStatus === 'ON_TIME').length;
+  const approachingCount = filteredMetrics.filter(m => m.slaStatus === 'APPROACHING').length;
+  const overdueCount = filteredMetrics.filter(m => m.slaStatus === 'OVERDUE').length;
+  const breachedCount = filteredMetrics.filter(m => m.slaStatus === 'BREACHED').length;
+
+  const complianceRate = totalComplaints > 0 
+    ? Math.round(((onTimeCount + approachingCount) / totalComplaints) * 100) 
+    : 0;
 
   const categoriesMap = {
     financial: { label: 'Financial', color: '#cf1322' },
@@ -696,40 +702,78 @@ function AdminDashboard() {
               </Card>
             </Col>
 
-            {/* Resolved SLA Performance */}
+            {/* SLA Compliance */}
             <Col xs={24} md={8}>
               <Card
-                title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><ClockCircleOutlined /> SLA Compliance (Resolved)</span>}
+                title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><ClockCircleOutlined /> SLA Compliance</span>}
                 bordered={true}
                 style={{ height: '100%', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
               >
                 <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>On-Time Resolution Rate</span>
-                  <strong style={{ fontSize: '18px', color: resolvedCount > 0 && (resolvedOnTime / resolvedCount) >= 0.8 ? '#52c41a' : '#faad14' }}>
-                    {resolvedCount > 0 ? Math.round((resolvedOnTime / resolvedCount) * 100) : 0}%
+                  <span>Overall Compliance Rate</span>
+                  <strong style={{ fontSize: '18px', color: complianceRate >= 80 ? '#52c41a' : complianceRate >= 50 ? '#faad14' : '#ff4d4f' }}>
+                    {complianceRate}%
                   </strong>
                 </div>
-                <Progress
-                  percent={resolvedCount > 0 ? Math.round((resolvedOnTime / resolvedCount) * 100) : 0}
-                  strokeColor={{ '0%': '#faad14', '100%': '#52c41a' }}
-                  status="active"
-                  style={{ marginBottom: '20px' }}
-                />
+                
+                {/* Horizontal Stacked Bar */}
+                <div style={{ display: 'flex', height: '14px', borderRadius: '7px', overflow: 'hidden', backgroundColor: '#f0f0f0', marginBottom: '20px' }}>
+                  {totalComplaints === 0 ? (
+                    <div style={{ width: '100%', backgroundColor: '#f5f5f5' }} />
+                  ) : (
+                    <>
+                      {onTimeCount > 0 && (
+                        <Tooltip title={`On Time: ${onTimeCount} (${Math.round((onTimeCount/totalComplaints)*100)}%)`}>
+                          <div style={{ width: `${(onTimeCount / totalComplaints) * 100}%`, backgroundColor: '#52c41a', transition: 'width 0.5s ease' }} />
+                        </Tooltip>
+                      )}
+                      {approachingCount > 0 && (
+                        <Tooltip title={`Approaching: ${approachingCount} (${Math.round((approachingCount/totalComplaints)*100)}%)`}>
+                          <div style={{ width: `${(approachingCount / totalComplaints) * 100}%`, backgroundColor: '#faad14', transition: 'width 0.5s ease' }} />
+                        </Tooltip>
+                      )}
+                      {overdueCount > 0 && (
+                        <Tooltip title={`Overdue (Active): ${overdueCount} (${Math.round((overdueCount/totalComplaints)*100)}%)`}>
+                          <div style={{ width: `${(overdueCount / totalComplaints) * 100}%`, backgroundColor: '#ff4d4f', transition: 'width 0.5s ease' }} />
+                        </Tooltip>
+                      )}
+                      {breachedCount > 0 && (
+                        <Tooltip title={`Breached (Resolved): ${breachedCount} (${Math.round((breachedCount/totalComplaints)*100)}%)`}>
+                          <div style={{ width: `${(breachedCount / totalComplaints) * 100}%`, backgroundColor: '#cf1322', transition: 'width 0.5s ease' }} />
+                        </Tooltip>
+                      )}
+                    </>
+                  )}
+                </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#52c41a', display: 'inline-block' }}></span>
-                      Resolved On-Time
+                      On Time
                     </span>
-                    <strong>{resolvedOnTime}</strong>
+                    <strong>{onTimeCount}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#faad14', display: 'inline-block' }}></span>
+                      Approaching
+                    </span>
+                    <strong>{approachingCount}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff4d4f', display: 'inline-block' }}></span>
-                      Resolved Breached / Overdue
+                      Overdue
                     </span>
-                    <strong>{resolvedBreached}</strong>
+                    <strong>{overdueCount}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#cf1322', display: 'inline-block' }}></span>
+                      Breached
+                    </span>
+                    <strong>{breachedCount}</strong>
                   </div>
                 </div>
               </Card>
