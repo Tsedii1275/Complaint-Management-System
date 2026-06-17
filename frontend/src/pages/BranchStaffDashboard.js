@@ -606,7 +606,7 @@ function BranchStaffDashboard() {
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item name="email" label="Email" rules={[{ required: true, type: 'email' }]}>
+                <Form.Item name="email" label="Email" rules={[{ required: false, type: 'email' }]}>
                   <Input placeholder="Email Address" />
                 </Form.Item>
               </Col>

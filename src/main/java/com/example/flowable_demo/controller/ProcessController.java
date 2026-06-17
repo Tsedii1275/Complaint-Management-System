@@ -1,5 +1,6 @@
 package com.example.flowable_demo.controller;
 
+import com.example.flowable_demo.model.AuditLog;
 import com.example.flowable_demo.service.AuditService;
 import com.example.flowable_demo.service.NotificationService;
 import com.example.flowable_demo.service.SlaTrackingService;
@@ -517,5 +518,31 @@ public class ProcessController {
                 "historyTaskCount", history.size());
 
         return ResponseEntity.ok(payload);
+    }
+
+    @GetMapping("/complaints/status/{ticketId}")
+    public ResponseEntity<?> getComplaintStatus(@PathVariable String ticketId) {
+        if (ticketId == null || ticketId.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Ticket number is required"));
+        }
+
+        List<AuditLog> logs = auditService.getLogs(null, ticketId, null, null, null);
+        if (logs == null || logs.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "No complaint found with the provided ticket number."));
+        }
+
+        // logs is sorted by createdAt Descending
+        AuditLog latestLog = logs.get(0);
+        AuditLog oldestLog = logs.get(logs.size() - 1);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("ticketNumber", ticketId);
+        result.put("customerName", oldestLog.getCustomerName() != null ? oldestLog.getCustomerName() : latestLog.getCustomerName());
+        result.put("currentStatus", latestLog.getAction());
+        result.put("submissionDate", oldestLog.getCreatedAt().toString());
+        result.put("description", oldestLog.getComplaintDescription() != null ? oldestLog.getComplaintDescription() : latestLog.getComplaintDescription());
+        result.put("category", oldestLog.getComplaintCategory() != null ? oldestLog.getComplaintCategory() : latestLog.getComplaintCategory());
+
+        return ResponseEntity.ok(result);
     }
 }

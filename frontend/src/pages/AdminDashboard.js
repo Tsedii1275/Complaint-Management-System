@@ -206,6 +206,27 @@ function AdminDashboard() {
   const slaByComplaintId = {};
   slaMetrics.forEach(m => { if (m.complaintId) slaByComplaintId[m.complaintId] = m; });
 
+  // ─── Human-readable status labels ───
+  const STATUS_LABEL_MAP = {
+    'COMPLAINT_CREATED':   { label: 'New (Complaint Created)', color: 'green' },
+    'TICKET_GENERATED':    { label: 'New (Complaint Created)', color: 'green' },
+    'TASK_ASSIGNED':       { label: 'Process Assigned',        color: 'blue'  },
+    'TASK_COMPLETED':      { label: 'Process Assigned',        color: 'blue'  },
+    'TASK_STARTED':        { label: 'Process Assigned',        color: 'blue'  },
+    'CMD_CLASSIFICATION':  { label: 'Process Assigned',        color: 'blue'  },
+    'NOTIFICATION_SENT':   { label: 'Solved',                  color: 'cyan'  },
+    'CASE_CLOSED':         { label: 'Closed',                  color: 'gray'  },
+  };
+
+  const getStatusTag = (action) => {
+    const mapped = STATUS_LABEL_MAP[action];
+    if (mapped) return <Tag color={mapped.color}>{mapped.label}</Tag>;
+    // Fallback for unmapped actions
+    let color = 'blue';
+    if (action?.includes('ERROR') || action?.includes('REJECTED')) color = 'red';
+    return <Tag color={color}>{action}</Tag>;
+  };
+
   const mainColumns = [
     {
       title: 'Ticket ID',
@@ -244,14 +265,7 @@ function AdminDashboard() {
       title: 'Current Status',
       dataIndex: 'latestAction',
       key: 'latestAction',
-      render: action => {
-        let color = 'blue';
-        if (action === 'COMPLAINT_CREATED' || action === 'TICKET_GENERATED') color = 'green';
-        if (action === 'CASE_CLOSED') color = 'gray';
-        if (action?.includes('ERROR') || action?.includes('REJECTED')) color = 'red';
-        if (action === 'NOTIFICATION_SENT') color = 'orange';
-        return <Tag color={color}>{action}</Tag>;
-      }
+      render: action => getStatusTag(action)
     },
     {
       title: 'Last Activity',
@@ -280,14 +294,7 @@ function AdminDashboard() {
         title: 'Action',
         dataIndex: 'action',
         key: 'action',
-        render: action => {
-          let color = 'blue';
-          if (action === 'COMPLAINT_CREATED' || action === 'TICKET_GENERATED') color = 'green';
-          if (action === 'CASE_CLOSED') color = 'gray';
-          if (action?.includes('ERROR') || action?.includes('REJECTED')) color = 'red';
-          if (action === 'NOTIFICATION_SENT') color = 'orange';
-          return <Tag color={color}>{action}</Tag>;
-        }
+        render: action => getStatusTag(action)
       },
       {
         title: 'Actor',

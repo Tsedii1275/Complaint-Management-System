@@ -54,6 +54,11 @@ class ApiService {
     return this.post('/api/complaints/start', complaintData);
   }
 
+  // Check complaint status by ticket number
+  async checkComplaintStatus(ticketId) {
+    return this.get(`/api/complaints/status/${ticketId}`);
+  }
+
   // Staff submits a complaint (possibly already resolved)
   async staffSubmitComplaint(complaintData) {
     return this.post('/api/complaints/staff-submit', complaintData);

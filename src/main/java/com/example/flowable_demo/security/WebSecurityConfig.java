@@ -62,6 +62,7 @@ public class WebSecurityConfig {
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/complaints/start").permitAll()
+                    .requestMatchers("/api/complaints/status/**").permitAll()
                     // Role-based protections
                     .requestMatchers("/api/complaints/staff-submit").hasAnyAuthority("ROLE_BRANCH_STAFF")
                     .requestMatchers("/api/tasks/**").authenticated()

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dropdown } from 'antd';
+import { Dropdown, Modal, Input, Button, Tag } from 'antd';
 import { GlobalOutlined } from '@ant-design/icons';
 import { BRAND_COLORS } from '../constants/theme';
 import ApiService from '../services/api';
@@ -21,6 +21,13 @@ function CustomerForm() {
   const [language, setLanguage] = useState('english');
   const [errors, setErrors] = useState({});
   const [countryCode, setCountryCode] = useState('+251');
+
+  // Check Status States
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [ticketSearch, setTicketSearch] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResult, setSearchResult] = useState(null);
+  const [searchError, setSearchError] = useState('');
 
   // Ethiopian Date states
   const [ethMonth, setEthMonth] = useState('መስከረም');
@@ -52,6 +59,17 @@ function CustomerForm() {
       selectBranch: 'Select your branch',
       complaintDate: 'Complaint Date',
       submitButton: 'Submit Complaint',
+      checkStatusTitle: 'Check Your Complaint Status',
+      checkStatusDesc: 'Have you already submitted a complaint? Enter your ticket number to track its current progress.',
+      trackButton: 'Track Complaint',
+      modalTitle: 'Check Complaint Status',
+      ticketLabel: 'Complaint Ticket Number',
+      checkStatusBtn: 'Check Status',
+      noTicketFound: 'No complaint found with the provided ticket number.',
+      ticketNumber: 'Ticket Number',
+      statusCustomerName: 'Customer Name',
+      submissionDate: 'Submission Date',
+      currentStatus: 'Current Status',
       categories: {
         financial: 'Financial - Banking Services',
         atm: 'ATM - Card Services',
@@ -81,6 +99,17 @@ function CustomerForm() {
       selectBranch: 'ቅርንጫፍዎን ይምረጡ',
       complaintDate: 'የቅሬታ ቀን',
       submitButton: 'ቅሬታውን ያስገቡ',
+      checkStatusTitle: 'የቅሬታዎን ሁኔታ ያረጋግጡ',
+      checkStatusDesc: 'ቅሬታ አስገብተዋል? የቅሬታዎን ሂደት ለመከታተል የቲኬት ቁጥርዎን ያስገቡ።',
+      trackButton: 'ቅሬታ ይከታተሉ',
+      modalTitle: 'የቅሬታ ሁኔታ ማረጋገጫ',
+      ticketLabel: 'የቅሬታ ቲኬት ቁጥር',
+      checkStatusBtn: 'ሁኔታውን እይ',
+      noTicketFound: 'በተጠቀሰው የቲኬት ቁጥር የተመዘገበ ቅሬታ አልተገኘም።',
+      ticketNumber: 'የቲኬት ቁጥር',
+      statusCustomerName: 'የደንበኛው ስም',
+      submissionDate: 'የገባበት ቀን',
+      currentStatus: 'የአሁኑ ሁኔታ',
       categories: {
         financial: 'ፋይናንሻል - የባንክ አገልግሎቶች',
         atm: 'ኤቲኤም - የካርድ አገልግሎቶች',
@@ -219,7 +248,10 @@ function CustomerForm() {
       console.log('Submitting complaint with payload:', payload);
       const response = await ApiService.submitComplaint(payload);
       
-      setMessageText('Your complaint has been submitted. You will receive a ticket number via email.');
+      const ticketId = response.ticketId || response.ticketNumber;
+      setMessageText(language === 'english'
+        ? `Your complaint has been submitted. Your Ticket Number is: ${ticketId}`
+        : `ቅሬታዎ ገብቷል። የቅሬታ መለያ ቁጥርዎ፡ ${ticketId}`);
       setMessageType('success');
       
       // Reset form
@@ -247,6 +279,67 @@ function CustomerForm() {
       setMessageType('error');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCheckStatus = async () => {
+    if (!ticketSearch.trim()) {
+      setSearchError(language === 'english' ? 'Please enter a ticket number' : 'እባክዎ የቲኬት ቁጥር ያስገቡ');
+      return;
+    }
+    setIsSearching(true);
+    setSearchError('');
+    setSearchResult(null);
+
+    try {
+      const response = await ApiService.checkComplaintStatus(ticketSearch.trim());
+      setSearchResult(response);
+    } catch (error) {
+      console.error('Status check error:', error);
+      if (error.message && error.message.includes('404')) {
+        setSearchError(t.noTicketFound);
+      } else {
+        setSearchError(language === 'english' ? 'Failed to fetch status. Please try again.' : 'የቅሬታውን ሁኔታ ለማምጣት አልተቻለም። እባክዎ እንደገና ይሞክሩ።');
+      }
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const STATUS_LABEL_MAP = {
+    'COMPLAINT_CREATED':   { english: 'New (Complaint Created)', amharic: 'አዲስ (ቅሬታ የተፈጠረ)', color: 'green' },
+    'TICKET_GENERATED':    { english: 'New (Complaint Created)', amharic: 'አዲስ (ቅሬታ የተፈጠረ)', color: 'green' },
+    'TASK_ASSIGNED':       { english: 'Process Assigned',        amharic: 'ሂደት ላይ ያለ',       color: 'blue'  },
+    'TASK_COMPLETED':      { english: 'Process Assigned',        amharic: 'ሂደት ላይ ያለ',       color: 'blue'  },
+    'TASK_STARTED':        { english: 'Process Assigned',        amharic: 'ሂደት ላይ ያለ',       color: 'blue'  },
+    'CMD_CLASSIFICATION':  { english: 'Process Assigned',        amharic: 'ሂደት ላይ ያለ',       color: 'blue'  },
+    'NOTIFICATION_SENT':   { english: 'Solved',                  amharic: 'የተፈታ',              color: 'cyan'  },
+    'CASE_CLOSED':         { english: 'Closed',                  amharic: 'የተዘጋ',              color: 'gray'  },
+  };
+
+  const getStatusTag = (action) => {
+    const mapped = STATUS_LABEL_MAP[action];
+    const label = mapped ? mapped[language] : action;
+    const color = mapped ? mapped.color : 'blue';
+    return (
+      <Tag color={color} style={{ fontSize: '14px', padding: '4px 12px', borderRadius: '4px', border: 'none', fontWeight: 600 }}>
+        {label}
+      </Tag>
+    );
+  };
+
+  const formatSubmissionDate = (dateStr) => {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString(language === 'english' ? 'en-US' : 'am-ET', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return dateStr;
     }
   };
 
@@ -305,16 +398,28 @@ function CustomerForm() {
         </div>
       </div>
 
-      {/* Main Content - Paper Form Style */}
-      <div style={{ flex: 1, padding: '40px 80px', display: 'flex', justifyContent: 'center' }}>
+      {/* Main Content - Two Column Layout */}
+      <div style={{
+        flex: 1,
+        padding: '40px 80px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        gap: '40px',
+        flexWrap: 'wrap',
+        maxWidth: '1300px',
+        margin: '0 auto',
+        width: '100%'
+      }}>
+        {/* Left Column - Main Form */}
         <div style={{
-          width: '100%',
-          maxWidth: '900px',
+          flex: '3 1 600px',
           backgroundColor: '#fff',
           padding: '40px',
           border: '1px solid #e0e0e0',
           borderRadius: '2px',
-          boxShadow: 'none'
+          boxShadow: 'none',
+          boxSizing: 'border-box'
         }}>
           <h2 style={{ textAlign: 'left', marginBottom: '40px', color: BRAND_COLORS.primary, fontSize: '24px', fontWeight: 700, borderBottom: '1px solid #f0f0f0', paddingBottom: '15px' }}>
             {t.formTitle}
@@ -359,14 +464,13 @@ function CustomerForm() {
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
-                  {t.email} <span style={{ color: 'red' }}>*</span>
+                  {t.email}
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  required
                   style={{
                     width: '100%',
                     padding: '12px 16px',
@@ -650,6 +754,164 @@ function CustomerForm() {
             </button>
           </form>
         </div>
+
+        {/* Right Column - Status Checker Card */}
+        <div style={{
+          flex: '1 1 300px',
+          backgroundColor: '#fff',
+          padding: '30px',
+          border: '1px solid #e0e0e0',
+          borderRadius: '2px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px'
+        }}>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: BRAND_COLORS.primary }}>
+            {t.checkStatusTitle}
+          </h3>
+          <p style={{ margin: 0, color: '#666', fontSize: '14px', lineHeight: 1.6 }}>
+            {t.checkStatusDesc}
+          </p>
+          <button
+            onClick={() => setIsStatusModalOpen(true)}
+            style={{
+              backgroundColor: 'white',
+              color: BRAND_COLORS.primary,
+              border: `2px solid ${BRAND_COLORS.primary}`,
+              padding: '12px 20px',
+              borderRadius: '4px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              width: '100%',
+              textAlign: 'center'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = BRAND_COLORS.primary;
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = 'white';
+              e.currentTarget.style.color = BRAND_COLORS.primary;
+            }}
+          >
+            {t.trackButton}
+          </button>
+        </div>
+
+        {/* Modal for checking status */}
+        <Modal
+          title={
+            <div style={{ fontSize: '20px', fontWeight: 700, color: BRAND_COLORS.primary, paddingBottom: '10px', borderBottom: '1px solid #f0f0f0' }}>
+              {t.modalTitle}
+            </div>
+          }
+          open={isStatusModalOpen}
+          onCancel={() => {
+            setIsStatusModalOpen(false);
+            setTicketSearch('');
+            setSearchResult(null);
+            setSearchError('');
+          }}
+          footer={null}
+          width={500}
+          centered
+        >
+          <div style={{ marginTop: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
+              {t.ticketLabel}
+            </label>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+              <Input
+                placeholder="e.g. CM-202606170001-AB12CD34"
+                value={ticketSearch}
+                onChange={(e) => setTicketSearch(e.target.value)}
+                onPressEnter={handleCheckStatus}
+                style={{ flex: 1, padding: '10px 16px', fontSize: '15px', borderRadius: '4px' }}
+              />
+              <Button
+                type="primary"
+                onClick={handleCheckStatus}
+                loading={isSearching}
+                style={{
+                  backgroundColor: BRAND_COLORS.primary,
+                  borderColor: BRAND_COLORS.primary,
+                  height: 'auto',
+                  padding: '10px 24px',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  borderRadius: '4px'
+                }}
+              >
+                {t.checkStatusBtn}
+              </Button>
+            </div>
+
+            {searchError && (
+              <div style={{
+                padding: '12px',
+                backgroundColor: '#f8d7da',
+                color: '#721c24',
+                border: '1px solid #f5c6cb',
+                borderRadius: '4px',
+                fontSize: '14px',
+                marginBottom: '20px',
+                fontWeight: 500
+              }}>
+                {searchError}
+              </div>
+            )}
+
+            {searchResult && (
+              <div style={{
+                padding: '24px',
+                backgroundColor: '#f8f9fa',
+                border: '1px solid #e9ecef',
+                borderRadius: '6px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
+              }}>
+                <div>
+                  <span style={{ display: 'block', color: '#888', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {t.ticketNumber}
+                  </span>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: BRAND_COLORS.primary }}>
+                    {searchResult.ticketNumber}
+                  </span>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                  <div style={{ flex: '1 1 180px' }}>
+                    <span style={{ display: 'block', color: '#888', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {t.statusCustomerName}
+                    </span>
+                    <span style={{ fontSize: '15px', fontWeight: 500, color: '#333' }}>
+                      {searchResult.customerName}
+                    </span>
+                  </div>
+                  <div style={{ flex: '1 1 180px' }}>
+                    <span style={{ display: 'block', color: '#888', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {t.submissionDate}
+                    </span>
+                    <span style={{ fontSize: '15px', fontWeight: 500, color: '#333' }}>
+                      {formatSubmissionDate(searchResult.submissionDate)}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <span style={{ display: 'block', color: '#888', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
+                    {t.currentStatus}
+                  </span>
+                  {getStatusTag(searchResult.currentStatus)}
+                </div>
+              </div>
+            )}
+          </div>
+        </Modal>
       </div>
     </div>
   );
