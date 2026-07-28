@@ -30,23 +30,82 @@ public class ComplaintSlaMetrics {
     @Column(name = "complaint_category", length = 100)
     private String complaintCategory;
 
+    @Column(name = "priority", length = 30)
+    @Builder.Default
+    private String priority = "GENERAL"; // HIGHLY_SENSITIVE, SENSITIVE, GENERAL
+
+    @Column(name = "requires_investigation")
+    @Builder.Default
+    private Boolean requiresInvestigation = false;
+
+    @Column(name = "investigation_type", length = 100)
+    private String investigationType; // CUSTOMER_ACCOUNT, LOAN, IBD, DIGITAL_BANKING, GENERAL
+
+    @Column(name = "branch", length = 100)
+    private String branch;
+
+    @Column(name = "district", length = 100)
+    private String district;
+
+    @Column(name = "channel", length = 50)
+    private String channel;
+
+    @Column(name = "fcr_status")
+    private Boolean fcrStatus;
+
+    @Column(name = "customer_name", length = 100)
+    private String customerName;
+
+    @Column(name = "status", length = 30)
+    private String status; // IN_PROGRESS, CLOSED
+
+    // ─── Stage SLA Lifecycle Tracking ───
+    @Column(name = "current_stage", length = 100)
+    private String currentStage; // CMD_SCREENING, FORWARDING, SERVICE_QUALITY, CXO_REVIEW, CEO_DIRECTION, INVESTIGATION, COMMITTEE_REVIEW, RESOLUTION, NOTIFICATION
+
+    @Column(name = "current_stage_started_at")
+    private LocalDateTime currentStageStartedAt;
+
+    @Column(name = "current_stage_due_time")
+    private LocalDateTime currentStageDueTime;
+
+    @Column(name = "current_stage_allowed_minutes")
+    private Integer currentStageAllowedMinutes;
+
+    @Column(name = "current_stage_elapsed_minutes")
+    @Builder.Default
+    private Integer currentStageElapsedMinutes = 0;
+
+    @Column(name = "current_stage_status", length = 30)
+    @Builder.Default
+    private String currentStageStatus = "ON_TRACK"; // ON_TRACK, APPROACHING, BREACHED
+
+    // ─── Overall Case SLA Lifecycle Tracking ───
+    @Column(name = "overall_sla_start_time")
+    private LocalDateTime overallSlaStartTime;
+
+    @Column(name = "overall_sla_due_time")
+    private LocalDateTime overallSlaDueTime;
+
     @Column(name = "total_allowed_minutes")
-    private Integer totalAllowedMinutes;
+    private Integer totalAllowedMinutes; // Business minutes allowed overall
 
     @Column(name = "total_elapsed_minutes")
-    private Integer totalElapsedMinutes;
+    @Builder.Default
+    private Integer totalElapsedMinutes = 0; // Business minutes elapsed overall
 
     @Column(name = "remaining_minutes")
     private Integer remainingMinutes;
 
     @Column(name = "sla_status", length = 30)
-    private String slaStatus; // ON_TIME, APPROACHING, OVERDUE, BREACHED
+    private String slaStatus; // ON_TRACK, APPROACHING, BREACHED, ESCALATED, RESOLVED_WITHIN_SLA, RESOLVED_AFTER_SLA
 
     @Column(name = "breached")
-    private Boolean breached;
+    @Builder.Default
+    private Boolean breached = false;
 
     @Column(name = "deadline")
-    private LocalDateTime deadline;
+    private LocalDateTime deadline; // Backward compatibility alias for overallSlaDueTime
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -55,7 +114,33 @@ public class ComplaintSlaMetrics {
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
 
-    // Duration in minutes spent in each lane
+    @Column(name = "breached_at")
+    private LocalDateTime breachedAt;
+
+    @Column(name = "escalated_at")
+    private LocalDateTime escalatedAt;
+
+    @Column(name = "escalation_level")
+    @Builder.Default
+    private Integer escalationLevel = 0; // 0=Work Unit, 1=Dept Manager/CMD Manager, 2=Director, 3=Chief Officer, 4=Executive
+
+    @Column(name = "breach_reason", length = 255)
+    private String breachReason;
+
+    // Automated Reminder Flags
+    @Column(name = "reminder_1_sent")
+    @Builder.Default
+    private Boolean reminder1Sent = false; // 80% SLA
+
+    @Column(name = "reminder_2_sent")
+    @Builder.Default
+    private Boolean reminder2Sent = false; // 100% SLA
+
+    @Column(name = "reminder_3_sent")
+    @Builder.Default
+    private Boolean reminder3Sent = false; // Breach & Escalation
+
+    // Duration in business minutes spent in each lane/department
     @Column(name = "branch_staff_duration")
     @Builder.Default
     private Integer branchStaffDuration = 0;
@@ -75,4 +160,13 @@ public class ComplaintSlaMetrics {
     @Column(name = "service_quality_duration")
     @Builder.Default
     private Integer serviceQualityDuration = 0;
+
+    @Column(name = "department", length = 100)
+    private String department;
+
+    @Column(name = "manager", length = 100)
+    private String manager;
+
+    @Column(name = "assigned_user_id")
+    private Long assignedUserId;
 }

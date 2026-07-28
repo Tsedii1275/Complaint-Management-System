@@ -13,8 +13,10 @@ function CustomerForm() {
     complaintCategory: 'general',
     complaintDescription: '',
     branch: '',
-    date: ''
+    date: '',
+    preferredContactMethod: ''
   });
+  const [consentChecked, setConsentChecked] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [messageType, setMessageType] = useState('');
@@ -33,6 +35,13 @@ function CustomerForm() {
   const [ethMonth, setEthMonth] = useState('መስከረም');
   const [ethDay, setEthDay] = useState('1');
   const [ethYear, setEthYear] = useState('2018');
+
+  // Evidence file attachment states
+  const [evidenceFile, setEvidenceFile] = useState(null);
+  const [evidenceUrl, setEvidenceUrl] = useState('');
+  const [evidenceName, setEvidenceName] = useState('');
+  const [isUploadingEvidence, setIsUploadingEvidence] = useState(false);
+
   const countryCodes = [
     { code: '+251', flag: '🇪🇹', name: 'Ethiopia' },
     { code: '+1', flag: '🇺🇸', name: 'USA' },
@@ -50,13 +59,14 @@ function CustomerForm() {
       subtitle: 'Submit your complaint and we will handle it promptly',
       formTitle: 'Customer Complaint Form',
       customerName: 'Customer Name',
-      email: 'Email',
-      phoneNumber: 'Phone Number',
+      email: 'Email Address',
+      phoneNumber: 'Mobile number you currently use',
+      phoneHelper: 'Please provide the phone number currently in use so we can contact you regarding your complaint.',
       accountNumber: 'Account Number',
       complaintDescription: 'Complaint Description',
       complaintCategory: 'Complaint Category',
       branch: 'Branch',
-      selectBranch: 'Select your branch',
+
       complaintDate: 'Complaint Date',
       submitButton: 'Submit Complaint',
       checkStatusTitle: 'Check Your Complaint Status',
@@ -70,6 +80,15 @@ function CustomerForm() {
       statusCustomerName: 'Customer Name',
       submissionDate: 'Submission Date',
       currentStatus: 'Current Status',
+      contactMethod: 'Preferred Contact Method',
+      contactMethodOptions: [
+        { value: 'SMS', label: 'SMS' },
+        { value: 'Email', label: 'Email' },
+        { value: 'Both', label: 'Both' }
+      ],
+      selectContactMethod: '— Select preferred contact method —',
+      consentText: 'I confirm that the information provided is accurate and complete to the best of my knowledge. I consent to the use of this information for the purpose of investigating and resolving my complaint.',
+      consentError: 'You must agree before submitting your complaint.',
       categories: {
         financial: 'Financial - Banking Services',
         atm: 'ATM - Card Services',
@@ -83,20 +102,29 @@ function CustomerForm() {
         internet_banking: 'Internet Banking',
         super_app: 'Super App',
         general: 'General - Other Issues'
-      }
+      },
+      evidenceLabel: 'Evidence Attachment (Optional)',
+      evidenceHelper: 'Upload any relevant documents, screenshots, or files to support your complaint (PDF, images, etc.).',
+      evidenceUploading: 'Uploading...',
+      evidenceUploaded: 'File uploaded successfully',
+      evidenceRemove: 'Remove',
+      evidenceChoose: 'Choose File',
+      evidenceChange: 'Change File',
+      evidenceDragDrop: 'or drag and drop your file here'
     },
     amharic: {
       title: 'የደንበኞች የቅሬታ ማቅረቢያ ቅጽ',
       subtitle: 'ቅሬታዎን እዚህ ያቅርቡ፤ በፍጥነት መፍትሄ ለመስጠት እንጥራለን።',
       formTitle: 'የደንበኞች የቅሬታ ማቅረቢያ ቅጽ',
       customerName: 'የደንበኛው ሙሉ ስም',
-      email: 'ኢሜይል',
-      phoneNumber: 'ስልክ ቁጥር',
+      email: 'የኢሜይል አድራሻ',
+      phoneNumber: 'አሁን የሚጠቀሙበት የሞባይል ስልክ ቁጥር',
+      phoneHelper: 'ቅሬታዎን በተመለከተ እንድንገናኝዎት እባክዎ በአሁኑ ጊዜ አገልግሎት ላይ ያለውን ስልክ ቁጥር ያቅርቡ።',
       accountNumber: 'የአካውንት ቁጥር',
       complaintDescription: 'የቅሬታው ዝርዝር መግለጫ',
       complaintCategory: 'የቅሬታ አይነት',
-      branch: 'ቅርንጫፍ',
-      selectBranch: 'ቅርንጫፍዎን ይምረጡ',
+      branch: 'ቅርንጫፍ (አማራጭ)',
+      selectBranch: 'ቅርንጫፍዎን ይምረጡ ወይም ያስገቡ (አማራጭ)',
       complaintDate: 'የቅሬታ ቀን',
       submitButton: 'ቅሬታውን ያስገቡ',
       checkStatusTitle: 'የቅሬታዎን ሁኔታ ያረጋግጡ',
@@ -110,6 +138,15 @@ function CustomerForm() {
       statusCustomerName: 'የደንበኛው ስም',
       submissionDate: 'የገባበት ቀን',
       currentStatus: 'የአሁኑ ሁኔታ',
+      contactMethod: 'ተመራጭ የመገናኛ ዘዴ',
+      contactMethodOptions: [
+        { value: 'SMS', label: 'ኤስኤምኤስ' },
+        { value: 'Email', label: 'ኢሜይል ' },
+        { value: 'Both', label: 'ሁለቱም' }
+      ],
+      selectContactMethod: '— ተመራጭ የመገናኛ ዘዴ ይምረጡ —',
+      consentText: 'እኔ የቀረበው መረጃ ለእኔ እውቀት ትክክለኛ እና የተሟላ መሆኑን አረጋግጣለሁ። ይህ መረጃ ቅሬታዬን ለመመርመር እና ለመፍታት ጥቅም ላይ እንዲውል እስማማለሁ።',
+      consentError: 'ቅሬታዎን ከማስገባትዎ በፊት መስማማት አለብዎት።',
       categories: {
         financial: 'ፋይናንሻል - የባንክ አገልግሎቶች',
         atm: 'ኤቲኤም - የካርድ አገልግሎቶች',
@@ -123,7 +160,15 @@ function CustomerForm() {
         internet_banking: 'ኢንተርኔት ባንኪንግ',
         super_app: 'ሱፐር አፕ',
         general: 'አጠቃላይ - ሌሎች ጉዳዮች'
-      }
+      },
+      evidenceLabel: 'ማስረጃ ማያያዣ (አማራጭ)',
+      evidenceHelper: 'ቅሬታዎን የሚደግፉ ማናቸውንም ሰነዶች፣ ምስሎች ወይም ፋይሎች ያያይዙ።',
+      evidenceUploading: 'በመስቀል ላይ...',
+      evidenceUploaded: 'ፋይል በተሳካ ሁኔታ ተሰቅሏል',
+      evidenceRemove: 'አስወግድ',
+      evidenceChoose: 'ፋይል ይምረጡ',
+      evidenceChange: 'ፋይል ይቀይሩ',
+      evidenceDragDrop: 'ወይም ፋይልዎን እዚህ ይጣሉ'
     }
   };
 
@@ -215,15 +260,22 @@ function CustomerForm() {
       // If they typed another country code entirely on the right
       rawPhone = rawPhone.replace(/^\+\d+/, '');
     }
-    
+
     let phone = countryCode + rawPhone;
 
     // Final validation before submission
-    if (formData.accountNumber && (formData.accountNumber.length !== 13 || !/^\d+$/.test(formData.accountNumber))) {
+    if (!formData.accountNumber || formData.accountNumber.length !== 13 || !/^\d+$/.test(formData.accountNumber)) {
       setErrors(prev => ({
         ...prev,
-        accountNumber: language === 'english' ? 'Must be exactly 13 digits' : 'በትክክል 13 አሃዝ መሆን አለበት'
+        accountNumber: language === 'english' ? 'Account Number is required and must be exactly 13 digits' : 'የአካውንት ቁጥር ያስፈልጋል እና በትክክል 13 አሃዝ መሆን አለበት'
       }));
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Consent validation
+    if (!consentChecked) {
+      setErrors(prev => ({ ...prev, consent: t.consentError }));
       setIsSubmitting(false);
       return;
     }
@@ -234,26 +286,36 @@ function CustomerForm() {
           name: formData.customerName,
           email: formData.email,
           phone: phone,
-          accountNumber: formData.accountNumber
+          accountNumber: formData.accountNumber,
+          preferredLanguage: language
         },
         complaint: {
           channel: 'web',
           category: formData.complaintCategory,
           description: formData.complaintDescription,
           branch: formData.branch,
-          date: formData.date
+          date: formData.date,
+          preferredContactMethod: formData.preferredContactMethod,
+          evidenceUrl: evidenceUrl || undefined,
+          evidenceName: evidenceName || undefined
         }
       };
 
       console.log('Submitting complaint with payload:', payload);
       const response = await ApiService.submitComplaint(payload);
-      
+
       const ticketId = response.ticketId || response.ticketNumber;
       setMessageText(language === 'english'
-        ? `Your complaint has been submitted. Your Ticket Number is: ${ticketId}`
-        : `ቅሬታዎ ገብቷል። የቅሬታ መለያ ቁጥርዎ፡ ${ticketId}`);
+        ? `Your complaint has been submitted. `
+        : `ቅሬታዎ ገብቷል።`);
       setMessageType('success');
-      
+
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setMessageText('');
+        setMessageType('');
+      }, 5000);
+
       // Reset form
       setFormData({
         customerName: '',
@@ -263,20 +325,32 @@ function CustomerForm() {
         complaintCategory: 'general',
         complaintDescription: '',
         branch: '',
-        date: ''
+        date: '',
+        preferredContactMethod: 'Email'
       });
-      
+      setConsentChecked(false);
+      setErrors({});
+      setEvidenceFile(null);
+      setEvidenceUrl('');
+      setEvidenceName('');
+
       console.log('Complaint submitted successfully:', response);
     } catch (error) {
       console.error('Error details:', error);
       let errorMessage = 'Failed to submit complaint. Please try again.';
-      
+
       if (error.message) {
         errorMessage = `Error: ${error.message}`;
       }
-      
+
       setMessageText(errorMessage);
       setMessageType('error');
+
+      // Auto-hide error message after 5 seconds
+      setTimeout(() => {
+        setMessageText('');
+        setMessageType('');
+      }, 5000);
     } finally {
       setIsSubmitting(false);
     }
@@ -307,14 +381,14 @@ function CustomerForm() {
   };
 
   const STATUS_LABEL_MAP = {
-    'COMPLAINT_CREATED':   { english: 'New (Complaint Created)', amharic: 'አዲስ (ቅሬታ የተፈጠረ)', color: 'green' },
-    'TICKET_GENERATED':    { english: 'New (Complaint Created)', amharic: 'አዲስ (ቅሬታ የተፈጠረ)', color: 'green' },
-    'TASK_ASSIGNED':       { english: 'Process Assigned',        amharic: 'ሂደት ላይ ያለ',       color: 'blue'  },
-    'TASK_COMPLETED':      { english: 'Process Assigned',        amharic: 'ሂደት ላይ ያለ',       color: 'blue'  },
-    'TASK_STARTED':        { english: 'Process Assigned',        amharic: 'ሂደት ላይ ያለ',       color: 'blue'  },
-    'CMD_CLASSIFICATION':  { english: 'Process Assigned',        amharic: 'ሂደት ላይ ያለ',       color: 'blue'  },
-    'NOTIFICATION_SENT':   { english: 'Solved',                  amharic: 'የተፈታ',              color: 'cyan'  },
-    'CASE_CLOSED':         { english: 'Closed',                  amharic: 'የተዘጋ',              color: 'gray'  },
+    'COMPLAINT_CREATED': { english: 'New', amharic: 'አዲስ ', color: 'green' },
+    'TICKET_GENERATED': { english: 'New', amharic: 'አዲስ ', color: 'green' },
+    'TASK_ASSIGNED': { english: 'Process Assigned', amharic: 'ሂደት ላይ ያለ', color: 'blue' },
+    'TASK_COMPLETED': { english: 'Process Assigned', amharic: 'ሂደት ላይ ያለ', color: 'blue' },
+    'TASK_STARTED': { english: 'Process Assigned', amharic: 'ሂደት ላይ ያለ', color: 'blue' },
+    'CMD_CLASSIFICATION': { english: 'Process Assigned', amharic: 'ሂደት ላይ ያለ', color: 'blue' },
+    'NOTIFICATION_SENT': { english: 'Solved', amharic: 'የተፈታ', color: 'cyan' },
+    'CASE_CLOSED': { english: 'Closed', amharic: 'የተዘጋ', color: 'gray' },
   };
 
   const getStatusTag = (action) => {
@@ -344,7 +418,17 @@ function CustomerForm() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#fcfcfc', display: 'flex', flexDirection: 'column' }}>
+    <div className={language === 'amharic' ? 'amharic-lightweight' : ''} style={{ minHeight: '100vh', backgroundColor: '#fcfcfc', display: 'flex', flexDirection: 'column' }}>
+      {language === 'amharic' && (
+        <style>
+          {`
+            .amharic-lightweight, 
+            .amharic-lightweight * {
+              font-weight: 300 !important;
+            }
+          `}
+        </style>
+      )}
       {/* Header - Left Aligned */}
       <div style={{
         backgroundColor: '#fff',
@@ -354,9 +438,9 @@ function CustomerForm() {
         borderBottom: '2px solid #012169'
       }}>
         {/* Language Selector */}
-        <div style={{ 
-          position: 'absolute', 
-          top: '40px', 
+        <div style={{
+          position: 'absolute',
+          top: '40px',
           right: '80px',
           zIndex: 10
         }}>
@@ -424,7 +508,7 @@ function CustomerForm() {
           <h2 style={{ textAlign: 'left', marginBottom: '40px', color: BRAND_COLORS.primary, fontSize: '24px', fontWeight: 700, borderBottom: '1px solid #f0f0f0', paddingBottom: '15px' }}>
             {t.formTitle}
           </h2>
-          
+
           {messageText && (
             <div style={{
               padding: '12px',
@@ -531,10 +615,13 @@ function CustomerForm() {
                     }}
                   />
                 </div>
+                <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#888', lineHeight: 1.5 }}>
+                  {t.phoneHelper}
+                </p>
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
-                  {t.accountNumber} <span style={{ color: '#888', fontSize: '12px', fontWeight: 400 }}>(optional)</span>
+                  {t.accountNumber} <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -564,14 +651,14 @@ function CustomerForm() {
             <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
-                  {t.branch} <span style={{ color: 'red' }}>*</span>
+                  {t.branch}
                 </label>
                 <input
                   type="text"
                   name="branch"
                   value={formData.branch}
                   onChange={handleInputChange}
-                  required
+                  placeholder={t.selectBranch}
                   style={{
                     width: '100%',
                     padding: '12px 16px',
@@ -710,7 +797,7 @@ function CustomerForm() {
             </div>
 
             {/* Row 5: Description */}
-            <div style={{ marginBottom: '32px' }}>
+            <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
                 {t.complaintDescription} <span style={{ color: 'red' }}>*</span>
               </label>
@@ -731,6 +818,159 @@ function CustomerForm() {
                   transition: 'border-color 0.2s'
                 }}
               />
+            </div>
+
+            {/* Row 6: Evidence Attachment (Optional) */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
+                {t.evidenceLabel}
+              </label>
+              <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#888' }}>
+                {t.evidenceHelper}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <input
+                  id="evidence-file-input"
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg,.gif,.doc,.docx,.xls,.xlsx,.txt,.zip"
+                  style={{ display: 'none' }}
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setEvidenceFile(file);
+                      setIsUploadingEvidence(true);
+                      try {
+                        const result = await ApiService.uploadEvidence(file);
+                        setEvidenceUrl(result.url);
+                        setEvidenceName(result.fileName);
+                      } catch (err) {
+                        console.error('Evidence upload failed:', err);
+                        setMessageType('error');
+                        setMessageText('Failed to upload evidence file. Please try again.');
+                      } finally {
+                        setIsUploadingEvidence(false);
+                      }
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('evidence-file-input').click()}
+                  disabled={isUploadingEvidence}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#fff',
+                    color: '#444',
+                    border: '1px solid #dcdcdc',
+                    borderRadius: '4px',
+                    cursor: isUploadingEvidence ? 'not-allowed' : 'pointer',
+                    opacity: isUploadingEvidence ? 0.7 : 1,
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => {
+                    if (!isUploadingEvidence) {
+                      e.currentTarget.style.borderColor = BRAND_COLORS.primary;
+                      e.currentTarget.style.color = BRAND_COLORS.primary;
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (!isUploadingEvidence) {
+                      e.currentTarget.style.borderColor = '#dcdcdc';
+                      e.currentTarget.style.color = '#444';
+                    }
+                  }}
+                >
+                  <span style={{ fontSize: '16px' }}>📎</span>
+                  {isUploadingEvidence ? t.evidenceUploading : (evidenceUrl ? t.evidenceChange : t.evidenceChoose)}
+                </button>
+                {evidenceName && (
+                  <span style={{ color: '#166534', fontSize: '14px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {evidenceName}
+                  </span>
+                )}
+                {evidenceUrl && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEvidenceFile(null);
+                      setEvidenceUrl('');
+                      setEvidenceName('');
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#dc2626',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      padding: '4px'
+                    }}
+                    title={t.evidenceRemove}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+            </div>
+
+            {/* Preferred Contact Method */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#444', fontSize: '14px' }}>
+                {t.contactMethod} <span style={{ color: 'red' }}>*</span>
+              </label>
+              <select
+                name="preferredContactMethod"
+                value={formData.preferredContactMethod}
+                onChange={handleInputChange}
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #dcdcdc',
+                  borderRadius: '4px',
+                  fontSize: '15px',
+                  backgroundColor: 'white',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  color: formData.preferredContactMethod ? '#222' : '#aaa',
+                  appearance: 'auto'
+                }}
+              >
+                <option value="" disabled>{t.selectContactMethod}</option>
+                {t.contactMethodOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Consent Checkbox */}
+            <div style={{ marginBottom: '32px', padding: '16px', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
+              <label style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={consentChecked}
+                  onChange={(e) => {
+                    setConsentChecked(e.target.checked);
+                    if (e.target.checked) {
+                      setErrors(prev => { const n = { ...prev }; delete n.consent; return n; });
+                    }
+                  }}
+                  style={{ accentColor: '#012169', width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer', flexShrink: 0 }}
+                />
+                <span style={{ fontSize: '13px', color: '#444', lineHeight: 1.6 }}>
+                  {t.consentText} <span style={{ color: 'red' }}>*</span>
+                </span>
+              </label>
+              {errors.consent && (
+                <div style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '8px', marginLeft: '30px' }}>
+                  {errors.consent}
+                </div>
+              )}
             </div>
 
             <button
@@ -882,7 +1122,7 @@ function CustomerForm() {
                     {searchResult.ticketNumber}
                   </span>
                 </div>
-                
+
                 <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
                   <div style={{ flex: '1 1 180px' }}>
                     <span style={{ display: 'block', color: '#888', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>

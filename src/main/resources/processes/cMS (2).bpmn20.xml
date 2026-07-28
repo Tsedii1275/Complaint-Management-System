@@ -27,12 +27,9 @@
         <flowNodeRef>IntermediateTimerEventBoundary_71</flowNodeRef>
         <flowNodeRef>FormTask_48</flowNodeRef>
         <flowNodeRef>ServiceTask_52</flowNodeRef>
-        <flowNodeRef>Exclusive_Databased_Gateway_50</flowNodeRef>
         <flowNodeRef>EndNoneEvent_55</flowNodeRef>
         <flowNodeRef>SequenceFlow_51</flowNodeRef>
         <flowNodeRef>SequenceFlow_56</flowNodeRef>
-        <flowNodeRef>SequenceFlow_53</flowNodeRef>
-        <flowNodeRef>SequenceFlow_59</flowNodeRef>
       </lane>
       <lane id="Lane_28" name="CMD">
         <flowNodeRef>IntermediateTimerEventBoundary_70</flowNodeRef>
@@ -98,7 +95,10 @@
         <flowNodeRef>SequenceFlow_74</flowNodeRef>
         <flowNodeRef>SequenceFlow_72</flowNodeRef>
         <flowNodeRef>SequenceFlow_73</flowNodeRef>
-        <flowNodeRef>SequenceFlow_7</flowNodeRef>
+      </lane>
+      <lane id="Lane_ChiefCommittee" name="Chief Committee">
+        <flowNodeRef>FormTask_ChiefCommittee</flowNodeRef>
+        <flowNodeRef>Gateway_ChiefCommitteeDecision</flowNodeRef>
       </lane>
     </laneSet>
     <userTask id="ServiceTask_65" name="Send Resolution (SQ)" flowable:assignee="${initiator}" flowable:formFieldValidation="false">
@@ -119,7 +119,7 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </endEvent>
-    <sequenceFlow id="SequenceFlow_68" sourceRef="ServiceTask_65" targetRef="EndNoneEvent_67" />
+    <sequenceFlow id="SequenceFlow_68" sourceRef="ServiceTask_65" targetRef="FormTask_67" />
     <boundaryEvent id="IntermediateTimerEventBoundary_72" name="SLA for Resolution" attachedToRef="FormTask_57" cancelActivity="false">
       <extensionElements>
         <design:stencilid><![CDATA[IntermediateTimerEventBoundary]]></design:stencilid>
@@ -155,7 +155,7 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
       <timerEventDefinition>
-        <timeDuration>PT48H</timeDuration>
+        <timeDuration>PT30S</timeDuration>
       </timerEventDefinition>
     </boundaryEvent>
     <serviceTask id="SLA_Escalation_Investigation" name="SLA Escalation Investigation" flowable:delegateExpression="${slaEscalationDelegate}" />
@@ -169,6 +169,30 @@
         <design:bordercolor><![CDATA[#1565C0]]></design:bordercolor>
       </extensionElements>
     </userTask>
+    <userTask id="FormTask_ChiefCommittee" name="Chief Committee Review" flowable:assignee="${initiator}" flowable:formFieldValidation="false">
+      <extensionElements>
+        <flowable:task-candidates-type><![CDATA[all]]></flowable:task-candidates-type>
+        <design:stencilid><![CDATA[FormTask]]></design:stencilid>
+        <design:stencilsuperid><![CDATA[Task]]></design:stencilsuperid>
+        <design:bgcolor><![CDATA[#E3F2FD]]></design:bgcolor>
+        <design:bordercolor><![CDATA[#1565C0]]></design:bordercolor>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="Gateway_ChiefCommitteeDecision" name="Chief Committee Decision ?">
+      <extensionElements>
+        <design:stencilid><![CDATA[Exclusive_Databased_Gateway]]></design:stencilid>
+        <design:bordercolor><![CDATA[#FBC02D]]></design:bordercolor>
+        <design:bgcolor><![CDATA[#FFF9C4]]></design:bgcolor>
+        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
+      </extensionElements>
+    </exclusiveGateway>
+    <sequenceFlow id="SequenceFlow_ChiefCommittee_Decision" sourceRef="FormTask_ChiefCommittee" targetRef="Gateway_ChiefCommitteeDecision" />
+    <sequenceFlow id="SequenceFlow_ChiefCommittee_Approved" name="Approved" sourceRef="Gateway_ChiefCommitteeDecision" targetRef="FormTask_43">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${committeeDecision == 'approved'}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="SequenceFlow_ChiefCommittee_Rejected" name="Rejected" sourceRef="Gateway_ChiefCommitteeDecision" targetRef="ServiceTask_52">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${committeeDecision == 'rejected'}]]></conditionExpression>
+    </sequenceFlow>
     <serviceTask id="ServiceTask_52" name="Notify Customer about their rejection" flowable:delegateExpression="${notificationDelegate}">
       <extensionElements>
         <design:stencilid><![CDATA[ServiceTask]]></design:stencilid>
@@ -177,14 +201,7 @@
         <design:bordercolor><![CDATA[#1565C0]]></design:bordercolor>
       </extensionElements>
     </serviceTask>
-    <exclusiveGateway id="Exclusive_Databased_Gateway_50" name="Investigation Decision ?">
-      <extensionElements>
-        <design:stencilid><![CDATA[Exclusive_Databased_Gateway]]></design:stencilid>
-        <design:bordercolor><![CDATA[#FBC02D]]></design:bordercolor>
-        <design:bgcolor><![CDATA[#FFF9C4]]></design:bgcolor>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-    </exclusiveGateway>
+
     <endEvent id="EndNoneEvent_55" name="Document the case and close">
       <extensionElements>
         <design:stencilid><![CDATA[EndNoneEvent]]></design:stencilid>
@@ -193,7 +210,7 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
     </endEvent>
-    <sequenceFlow id="SequenceFlow_51" sourceRef="FormTask_48" targetRef="Exclusive_Databased_Gateway_50" />
+    <sequenceFlow id="SequenceFlow_51" sourceRef="FormTask_48" targetRef="FormTask_ChiefCommittee" />
     <sequenceFlow id="SequenceFlow_56" sourceRef="ServiceTask_52" targetRef="EndNoneEvent_55" />
     <boundaryEvent id="IntermediateTimerEventBoundary_70" name="SLA for CMD" attachedToRef="FormTask_43" cancelActivity="false">
       <extensionElements>
@@ -201,7 +218,7 @@
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
       <timerEventDefinition>
-        <timeDuration>PT24H</timeDuration>
+        <timeDuration>PT30S</timeDuration>
       </timerEventDefinition>
     </boundaryEvent>
     <serviceTask id="SLA_Escalation_CMD" name="SLA Escalation CMD" flowable:delegateExpression="${slaEscalationDelegate}" />
@@ -248,7 +265,7 @@
       </extensionElements>
     </endEvent>
     <sequenceFlow id="SequenceFlow_46" sourceRef="FormTask_43" targetRef="Exclusive_Databased_Gateway_45" />
-    <sequenceFlow id="SequenceFlow_94" sourceRef="ServiceTask_62" targetRef="EndNoneEvent_93" />
+    <sequenceFlow id="SequenceFlow_94" sourceRef="ServiceTask_62" targetRef="FormTask_67" />
     <sequenceFlow id="SequenceFlow_58" sourceRef="ServiceTask_46" targetRef="FormTask_57" />
     <serviceTask id="ServiceTask_41" name="Send Acknowledgment and ticket number" flowable:delegateExpression="${sendAcknowledgmentDelegate}">
       <extensionElements>
@@ -304,7 +321,9 @@
       </extensionElements>
     </exclusiveGateway>
     <!-- Social Media channel: Resolution task -->
-    <sequenceFlow id="SequenceFlow_13" name="Social Media , email" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_24" />
+    <sequenceFlow id="SequenceFlow_13" name="Social Media , email" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_24">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${channel == 'email' || channel == 'facebook' || channel == 'telegram' || channel == 'twitter' || channel == 'instagram' || channel == 'whatsapp' || channel == 'linkedin' || channel == 'youtube' || channel == 'tiktok'}]]></conditionExpression>
+    </sequenceFlow>
     <sequenceFlow id="SequenceFlow_27" sourceRef="FormTask_24" targetRef="Exclusive_Databased_Gateway_26" />
     <!-- Social Media: No-ACK path: isFCR=false → Send Acknowledgment → CMD -->
     <sequenceFlow id="SequenceFlow_77" sourceRef="ServiceTask_41" targetRef="FormTask_43" />
@@ -364,7 +383,9 @@
     </exclusiveGateway>
     <sequenceFlow id="SequenceFlow_23" sourceRef="FormTask_20" targetRef="Exclusive_Databased_Gateway_22" />
     <!-- Contact Center channel: Resolution task -->
-    <sequenceFlow id="SequenceFlow_11" name="Contact Center" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_20" />
+    <sequenceFlow id="SequenceFlow_11" name="Contact Center" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_20">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${channel == 'letter'}]]></conditionExpression>
+    </sequenceFlow>
     <!-- Contact Center: No-ACK path: isFCR=false → Send Acknowledgment → CMD -->
     <sequenceFlow id="SequenceFlow_86" sourceRef="ServiceTask_79" targetRef="FormTask_43" />
     <sequenceFlow id="SequenceFlow_85" sourceRef="ServiceTask_78" targetRef="ServiceTask_79" />
@@ -423,9 +444,13 @@
       </extensionElements>
     </exclusiveGateway>
     <!-- Branch channel: Resolution task -->
-    <sequenceFlow id="SequenceFlow_9" name="In Person" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_16" />
+    <sequenceFlow id="SequenceFlow_9" name="In Person" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_43">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${channel == 'branch' || channel == 'phone' || channel == 'social_media'}]]></conditionExpression>
+    </sequenceFlow>
     <!-- Web channel: Resolution task -->
-    <sequenceFlow id="SequenceFlow_74" name="Web" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_16" />
+    <sequenceFlow id="SequenceFlow_74" name="Web" sourceRef="Exclusive_Databased_Gateway_6" targetRef="FormTask_43">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${channel == 'web'}]]></conditionExpression>
+    </sequenceFlow>
     <!-- Branch/Web: No-ACK path: isFCR=false → Send Acknowledgment to CMD → CMD task -->
     <sequenceFlow id="SequenceFlow_91" sourceRef="ServiceTask_80" targetRef="FormTask_43" />
     <sequenceFlow id="SequenceFlow_88" sourceRef="ServiceTask_82" targetRef="ServiceTask_80" />
@@ -437,7 +462,7 @@
         <design:bordercolor><![CDATA[#1565C0]]></design:bordercolor>
       </extensionElements>
     </serviceTask>
-    <userTask id="FormTask_67" name="Customer submit feed back" flowable:assignee="${initiator}" flowable:formFieldValidation="false">
+    <userTask id="FormTask_67" name="Customer Resolution Confirmation" flowable:assignee="${initiator}" flowable:formFieldValidation="false">
       <extensionElements>
         <flowable:task-candidates-type><![CDATA[all]]></flowable:task-candidates-type>
         <design:stencilid><![CDATA[FormTask]]></design:stencilid>
@@ -526,12 +551,7 @@
       <conditionExpression xsi:type="tFormalExpression"><![CDATA[${isSatisfied == false}]]></conditionExpression>
     </sequenceFlow>
     <sequenceFlow id="SequenceFlow_7" sourceRef="startnoneevent1" targetRef="Exclusive_Databased_Gateway_6" />
-    <sequenceFlow id="SequenceFlow_59" name="Approved" sourceRef="Exclusive_Databased_Gateway_50" targetRef="FormTask_57">
-      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${investigationDecision == 'approved'}]]></conditionExpression>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_53" name="Rejected" sourceRef="Exclusive_Databased_Gateway_50" targetRef="ServiceTask_52">
-      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${investigationDecision == 'rejected'}]]></conditionExpression>
-    </sequenceFlow>
+
     <sequenceFlow id="SequenceFlow_47" name="No" sourceRef="Exclusive_Databased_Gateway_45" targetRef="ServiceTask_46">
       <conditionExpression xsi:type="tFormalExpression"><![CDATA[${requiresInvestigation == false}]]></conditionExpression>
     </sequenceFlow>
@@ -570,7 +590,8 @@
     </sequenceFlow>
 
     <!-- Final Resolution Notification to End -->
-    <sequenceFlow id="SequenceFlow_92" sourceRef="ServiceTask_31" targetRef="EndNoneEvent_35" />
+    <sequenceFlow id="SequenceFlow_92" sourceRef="ServiceTask_31" targetRef="FormTask_67" />
+    <sequenceFlow id="SequenceFlow_CustomerFeedback_to_Gateway" sourceRef="FormTask_67" targetRef="Exclusive_Databased_Gateway_70" />
 
   </process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_Collaboration">
@@ -623,12 +644,7 @@
       <bpmndi:BPMNShape bpmnElement="ServiceTask_52" id="BPMNShape_ServiceTask_52">
         <omgdc:Bounds height="80.0" width="100.0" x="238.40000000000003" y="1704.0960277307906"></omgdc:Bounds>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="Exclusive_Databased_Gateway_50" id="BPMNShape_Exclusive_Databased_Gateway_50">
-        <omgdc:Bounds height="40.0" width="40.0" x="93.39999999999998" y="1724.0960277307906"></omgdc:Bounds>
-        <bpmndi:BPMNLabel>
-          <omgdc:Bounds height="18.0" width="137.0" x="54.49999999999994" y="1766.0960277307906"></omgdc:Bounds>
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
+
       <bpmndi:BPMNShape bpmnElement="EndNoneEvent_55" id="BPMNShape_EndNoneEvent_55">
         <omgdc:Bounds height="28.0" width="27.999999999999943" x="635.5039999999999" y="1730.0960277307906"></omgdc:Bounds>
         <bpmndi:BPMNLabel>
@@ -853,15 +869,7 @@
         <omgdi:waypoint x="48.64000000000004" y="1939.1057017702326"></omgdi:waypoint>
         <omgdi:waypoint x="363.84000000000003" y="1939.1057017702326"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_59" id="BPMNEdge_SequenceFlow_59" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
-        <omgdi:waypoint x="113.39999999999998" y="1764.0960277307906"></omgdi:waypoint>
-        <omgdi:waypoint x="113.39999999999998" y="1809.4338640713347"></omgdi:waypoint>
-        <omgdi:waypoint x="-1.3599999999999568" y="1809.4338640713347"></omgdi:waypoint>
-        <omgdi:waypoint x="-1.3599999999999568" y="1899.1057017702326"></omgdi:waypoint>
-        <bpmndi:BPMNLabel>
-          <omgdc:Bounds height="18.0" width="52.0" x="14.199999999999989" y="1812.4960277307905"></omgdc:Bounds>
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
+
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_38" id="BPMNEdge_SequenceFlow_38" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="58.0" flowable:targetDockerY="48.0">
         <omgdi:waypoint x="455.40000000000003" y="1053.8006446954441"></omgdi:waypoint>
         <omgdi:waypoint x="791.9000000000001" y="1053.8006446954441"></omgdi:waypoint>
@@ -953,13 +961,7 @@
           <omgdc:Bounds height="18.0" width="25.0" x="-145.59999999999997" y="900.436231884056"></omgdc:Bounds>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_53" id="BPMNEdge_SequenceFlow_53" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
-        <omgdi:waypoint x="133.39999999999998" y="1744.0960277307906"></omgdi:waypoint>
-        <omgdi:waypoint x="238.40000000000003" y="1744.0960277307906"></omgdi:waypoint>
-        <bpmndi:BPMNLabel>
-          <omgdc:Bounds height="18.0" width="49.0" x="154.2" y="1717.2960277307905"></omgdc:Bounds>
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
+
 
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_76" id="BPMNEdge_SequenceFlow_76" flowable:sourceDockerX="46.0" flowable:sourceDockerY="31.0" flowable:targetDockerX="54.0" flowable:targetDockerY="40.0">
         <omgdi:waypoint x="82.40000000000003" y="1341.0970215070383"></omgdi:waypoint>

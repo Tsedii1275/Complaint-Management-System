@@ -40,4 +40,16 @@ public class User {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "district")
+    private String district;
+
+    @Column(name = "branch")
+    private String branch;
+
+    @Column(name = "department")
+    private String department;
+
+    @Column(name = "full_name")
+    private String fullName;
 }

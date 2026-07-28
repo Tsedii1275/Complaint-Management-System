@@ -41,11 +41,59 @@ public class TaskTimeTracking {
     @Column(name = "assigned_user", length = 100)
     private String assignedUser;
 
+    @Column(name = "assigned_role", length = 50)
+    private String assignedRole;
+
+    @Column(name = "assigned_department", length = 100)
+    private String assignedDepartment;
+
+    @Column(name = "assigned_branch", length = 100)
+    private String assignedBranch;
+
+    @Column(name = "assigned_district", length = 100)
+    private String assignedDistrict;
+
     @Column(name = "started_at")
     private LocalDateTime startedAt;
 
+    @Column(name = "claimed_at")
+    private LocalDateTime claimedAt;
+
+    @Column(name = "claimed_by", length = 100)
+    private String claimedBy;
+
+    @Column(name = "is_claimed")
+    @Builder.Default
+    private Boolean isClaimed = false;
+
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
+
+    // Response SLA Metrics (Assignment -> Claim)
+    @Column(name = "response_time_minutes")
+    private Long responseTimeMinutes;
+
+    @Column(name = "response_sla_target_minutes")
+    private Integer responseSlaTargetMinutes;
+
+    @Column(name = "response_sla_status", length = 30)
+    private String responseSlaStatus;
+
+    @Column(name = "response_breach_duration_minutes")
+    private Long responseBreachDurationMinutes;
+
+    // Resolution SLA Metrics (Claim -> Completion)
+    @Column(name = "resolution_time_minutes")
+    private Long resolutionTimeMinutes;
+
+    @Column(name = "resolution_sla_target_minutes")
+    private Integer resolutionSlaTargetMinutes;
+
+    @Column(name = "resolution_sla_status", length = 30)
+    private String resolutionSlaStatus;
+
+    @Column(name = "resolution_breach_duration_minutes")
+    private Long resolutionBreachDurationMinutes;
 
     @Column(name = "duration_minutes")
     private Long durationMinutes;

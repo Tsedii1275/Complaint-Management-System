@@ -14,7 +14,11 @@ public class SLAEscalationDelegate implements JavaDelegate {
     public void execute(DelegateExecution execution) {
         Map<String, Object> sla = (Map<String, Object>) execution.getVariable("sla");
         if (sla == null) {
-            throw new IllegalStateException("SLA object missing");
+            sla = new java.util.HashMap<>();
+            sla.put("deadline", java.time.LocalDateTime.now().plusHours(24).toString());
+            sla.put("breached", false);
+            sla.put("reminderCount", 0);
+            sla.put("escalationLevel", 0);
         }
 
         Integer reminderCount = sla.getOrDefault("reminderCount", 0) instanceof Integer

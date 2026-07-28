@@ -1,11 +1,6 @@
 package com.example.flowable_demo.controller;
 
 import com.example.flowable_demo.security.JwtUtils;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +22,9 @@ public class AuthController {
     @Autowired
     JwtUtils jwtUtils;
 
+    @Autowired
+    private com.example.flowable_demo.repository.UserRepository userRepository;
+
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody Map<String, String> loginRequest) {
         try {
@@ -43,6 +41,16 @@ public class AuthController {
             response.put("token", jwt);
             response.put("username", userDetails.getUsername());
             response.put("role", role);
+
+            // Fetch and append user profile attributes including full name
+            var userOpt = userRepository.findByUsernameIgnoreCase(userDetails.getUsername());
+            if (userOpt.isPresent()) {
+                var u = userOpt.get();
+                response.put("district", u.getDistrict());
+                response.put("branch", u.getBranch());
+                response.put("department", u.getDepartment());
+                response.put("fullName", u.getFullName());
+            }
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {

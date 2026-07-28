@@ -228,7 +228,6 @@ function CMD() {
             <p><strong>Ticket ID:</strong> {selectedTask.complaintId}</p>
             <p><strong>Customer Name:</strong> {selectedTask.customerName}</p>
             <p><strong>Priority:</strong> {selectedTask.priority}</p>
-            <p><strong>SLA Status:</strong> {selectedTask.slaStatus}</p>
             
             {selectedTask.variables?.complaint && (
               <div>

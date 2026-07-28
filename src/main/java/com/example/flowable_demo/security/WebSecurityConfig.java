@@ -63,6 +63,13 @@ public class WebSecurityConfig {
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/complaints/start").permitAll()
                     .requestMatchers("/api/complaints/status/**").permitAll()
+                    .requestMatchers("/api/complaints/attachments/**").permitAll()
+                    .requestMatchers("/api/complaints/upload-evidence").permitAll()
+                    .requestMatchers("/api/customer-feedback").permitAll()
+                    .requestMatchers("/api/customer-feedback/validate").permitAll()
+                    .requestMatchers("/api/customer-feedback/init-db").permitAll()
+                    .requestMatchers("/api/process/clear-all").permitAll()
+                    .requestMatchers("/api/tasks/clear-all").permitAll()
                     // Role-based protections
                     .requestMatchers("/api/complaints/staff-submit").hasAnyAuthority("ROLE_BRANCH_STAFF")
                     .requestMatchers("/api/tasks/**").authenticated()

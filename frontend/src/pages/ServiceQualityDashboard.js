@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Button, Tag, Empty, Alert, Space, Row, Col, Input } from 'antd';
-import { DeleteOutlined, SendOutlined, SafetyOutlined } from '@ant-design/icons';
+import { Card, Typography, Button, Tag, Empty, Alert, Space, Row, Col, Input, message, Modal } from 'antd';
+import { SendOutlined, ArrowLeftOutlined, BellOutlined } from '@ant-design/icons';
 import DashboardLayout from '../components/DashboardLayout';
 import ApiService from '../services/api';
 import { BRAND_COLORS } from '../constants/theme';
+import TaskCard from '../components/TaskCard';
+import TaskTable from '../components/TaskTable';
+import { useAuth } from '../contexts/AuthContext';
 
 const { Title, Text, Paragraph } = Typography;
 
 function ServiceQualityDashboard() {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState('');
-  const [clearingTasks, setClearingTasks] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
 
   useEffect(() => {
@@ -24,6 +26,7 @@ function ServiceQualityDashboard() {
   const loadTasks = async () => {
     try {
       setLoading(true);
+      setError('');
       const tasksData = await ApiService.getEnrichedTasks();
       const serviceQualityTasks = tasksData.filter(task => 
         task.name && (
@@ -34,62 +37,26 @@ function ServiceQualityDashboard() {
         )
       );
       setTasks(serviceQualityTasks);
-    } catch (error) {
-      setError('Failed to load tasks');
-      console.error('Error loading tasks:', error);
+    } catch (err) {
+      console.error('Error loading tasks:', err);
+      setError('Failed to load pending customer notification tasks.');
     } finally {
       setLoading(false);
     }
   };
 
-  const clearAllTasks = async () => {
-    if (window.confirm('Are you sure you want to clear all tasks? This action cannot be undone.')) {
-      setClearingTasks(true);
-      try {
-        const allTasks = await ApiService.getTasks();
-        const clearPromises = allTasks.map(task => 
-          ApiService.completeTask(task.id, {})
-        );
-        
-        await Promise.all(clearPromises);
-        setMessage('All tasks cleared successfully!');
-        setSelectedTask(null);
-        await loadTasks();
-        
-        setTimeout(() => setMessage(''), 3000);
-      } catch (error) {
-        setMessage('Failed to clear some tasks');
-        console.error('Error clearing tasks:', error);
-      } finally {
-        setClearingTasks(false);
-      }
-    }
-  };
-
-  const handleTaskSelect = async (task) => {
+  const handleTaskSelect = (task) => {
     setSelectedTask(task);
-    setMessage('');
-    
-    // Initialize notification message
     const customerName = task.customerName || 'Customer';
     const complaintId = task.complaintId || 'Case';
-    const defaultMsg = `Dear ${customerName},\n\nYour complaint ${complaintId} has been processed and resolved.\n\nWe hope the resolution meets your expectations. Thank you for your patience.\n\nBest regards,\nCustomer Service Team`;
+    const defaultMsg = `Dear ${customerName},\n\nYour complaint ${complaintId} has been processed and resolved.\n\nWe hope the resolution meets your expectations. Thank you for choosing Dashen Bank.\n\nBest regards,\nService Quality & Customer Experience Department`;
     setNotificationMessage(defaultMsg);
-
-    try {
-      await loadTasks();
-    } catch (error) {
-      setMessage('Failed to select task');
-      console.error('Error selecting task:', error);
-    }
   };
 
   const handleSendResolution = async () => {
     if (!selectedTask) return;
 
     setIsSubmitting(true);
-    setMessage('');
-
     try {
       const variables = {
         customNotificationMessage: notificationMessage,
@@ -97,229 +64,160 @@ function ServiceQualityDashboard() {
         notificationSentBy: 'Service Quality'
       };
       await ApiService.completeTask(selectedTask.id, variables);
-      setMessage('Resolution notification sent to customer successfully!');
-      
+      message.success('Resolution notification sent to customer successfully!');
       setSelectedTask(null);
       await loadTasks();
-    } catch (error) {
-      setMessage('Failed to send resolution notification');
-      console.error('Error completing task:', error);
+    } catch (err) {
+      console.error('Error completing task:', err);
+      message.error('Failed to send resolution notification.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-      <Card loading={true} style={{ width: '100%', maxWidth: '600px' }} />
-    </div>
-  );
-  
-  if (error) return (
-    <Alert
-      message="Error"
-      description={error}
-      type="error"
-      showIcon
-      style={{ margin: '20px' }}
-    />
-  );
-
-  const getPriorityColor = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case 'p1': return 'red';
-      case 'p2': return 'orange';
-      case 'p3': return 'green';
-      default: return 'blue';
-    }
-  };
-
-  const getSlaStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'overdue': return 'error';
-      case 'approaching': return 'warning';
-      default: return 'success';
-    }
-  };
+  if (loading) {
+    return (
+      <DashboardLayout userRole="service-quality">
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+          <Card loading={true} style={{ width: '100%', maxWidth: '600px' }} />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout userRole="service-quality">
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-          <div>
-            <Title level={2} style={{ margin: 0, color: BRAND_COLORS.primary }}>
-              Service Quality Dashboard
-            </Title>
-            <Text type="secondary" style={{ fontSize: '16px' }}>
-              Send customer notifications and ensure service quality
-            </Text>
-          </div>
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            onClick={clearAllTasks}
-            disabled={clearingTasks}
-            loading={clearingTasks}
-            size="large"
-          >
-            Clear All Tasks
-          </Button>
-        </div>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
         
-        {message && (
-          <Alert
-            message={message.includes('success') ? 'Success' : 'Information'}
-            description={message}
-            type={message.includes('success') ? 'success' : 'info'}
-            showIcon
-            closable
-            style={{ marginBottom: '24px' }}
-            onClose={() => setMessage('')}
-          />
+        {/* Officer Greeting */}
+        <div style={{ marginBottom: '32px' }}>
+          <Title level={2} style={{ margin: 0, color: BRAND_COLORS.primary }}>
+            Hello, {user?.fullName || user?.username || 'Service Quality Officer'}
+          </Title>
+          <Text type="secondary" style={{ fontSize: '15px' }}>
+            Customer response & final resolution notifications queue
+          </Text>
+        </div>
+
+        {error && (
+          <Alert message="Error" description={error} type="error" showIcon style={{ marginBottom: '24px' }} />
         )}
 
         {!selectedTask ? (
           <div>
-            <Title level={4} style={{ marginBottom: '24px' }}>
-              Customer Notifications ({tasks.length})
-            </Title>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <Title level={4} style={{ margin: 0 }}>
+                Customer Notification Tasks ({tasks.length})
+              </Title>
+            </div>
+
             {tasks.length === 0 ? (
               <Empty
-                description="No notifications pending"
+                description="No assigned customer notification tasks pending"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 style={{ marginTop: '60px' }}
               />
             ) : (
-              <Row gutter={[24, 24]}>
-                {tasks.map(task => (
-                  <Col xs={24} sm={24} md={12} lg={8} xl={6} key={task.id}>
-                    <Card
-                      hoverable
-                      className={`task-card task-priority-${getPriorityColor(task.priority)}`}
-                      onClick={() => handleTaskSelect(task)}
-                      size="small"
-                      title={
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Text strong style={{ fontSize: '14px' }}>
-                            {task.name}
-                          </Text>
-                          <Tag color={getSlaStatusColor(task.slaStatus)}>
-                            {task.slaStatus}
-                          </Tag>
-                        </div>
-                      }
-                      extra={
-                        <Tag color={getPriorityColor(task.priority)}>
-                          {task.priority}
-                        </Tag>
-                      }
-                    >
-                      <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                        <div>
-                          <Text type="secondary">Ticket ID:</Text>
-                          <br />
-                          <Text code>{task.complaintId}</Text>
-                        </div>
-                        <div>
-                          <Text type="secondary">Customer:</Text>
-                          <br />
-                          <Text>{task.customerName}</Text>
-                        </div>
-                        <div>
-                          <Text type="secondary">Created:</Text>
-                          <br />
-                          <Text>{new Date(task.createdAt).toLocaleDateString()}</Text>
-                        </div>
-                      </Space>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
+              <TaskTable
+                tasks={tasks}
+                onSelectTask={handleTaskSelect}
+                onTaskClaimed={loadTasks}
+              />
             )}
           </div>
         ) : (
           <div>
-            <Button
-              icon={<DeleteOutlined />}
-              onClick={() => setSelectedTask(null)}
-              style={{ marginBottom: '24px' }}
-            >
-              Back to Notifications
-            </Button>
+            <div style={{ marginBottom: '20px' }}>
+              <Button icon={<ArrowLeftOutlined />} onClick={() => setSelectedTask(null)} style={{ borderRadius: '6px' }} />
+            </div>
 
             <Row gutter={[24, 24]}>
-              <Col xs={24} lg={12}>
-                <Card title="Notification Details" className="form-section">
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    <div>
-                      <Text type="secondary">Ticket ID:</Text>
-                      <br />
-                      <Text code>{selectedTask.complaintId}</Text>
-                    </div>
-                    <div>
-                      <Text type="secondary">Customer Name:</Text>
-                      <br />
-                      <Text>{selectedTask.customerName}</Text>
-                    </div>
-                    <div>
-                      <Text type="secondary">Priority:</Text>
-                      <br />
-                      <Tag color={getPriorityColor(selectedTask.priority)}>
-                        {selectedTask.priority}
-                      </Tag>
-                    </div>
-                    <div>
-                      <Text type="secondary">SLA Status:</Text>
-                      <br />
-                      <Tag color={getSlaStatusColor(selectedTask.slaStatus)}>
-                        {selectedTask.slaStatus}
-                      </Tag>
-                    </div>
-                    <div>
-                      <Text type="secondary">Notification Type:</Text>
-                      <br />
-                      <Text>{selectedTask.name}</Text>
-                    </div>
-                    {selectedTask.variables?.resolutionDetails && (
-                      <div>
-                        <Text type="secondary">Resolution Details:</Text>
-                        <br />
-                        <Paragraph strong>
-                          {selectedTask.variables.resolutionDetails}
-                        </Paragraph>
-                      </div>
-                    )}
-                    {selectedTask.variables?.actionTaken && (
-                      <div>
-                        <Text type="secondary">Action Taken:</Text>
-                        <br />
-                        <Paragraph italic>
-                          {selectedTask.variables.actionTaken}
-                        </Paragraph>
-                      </div>
-                    )}
-                  </Space>
-                </Card>
-              </Col>
-              
-              <Col xs={24} lg={12}>
-                <Card title="Send Customer Notification" className="form-section">
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    <div>
-                      <Text strong>Ready to send customer notification?</Text>
-                      <br />
-                      <Text type="secondary" style={{ marginTop: '8px' }}>
-                        This will send a professional notification to the customer with the resolution details.
-                      </Text>
+              <Col xs={24} lg={13}>
+                <div style={{
+                  background: '#f8fafc',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  border: '1px solid #f1f5f9'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <Text style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+                      Complaint details
+                    </Text>
+                    <Tag color="blue" style={{ borderRadius: '6px', fontWeight: 600, margin: 0 }}>
+                      {selectedTask.complaintId}
+                    </Tag>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ color: '#64748b', fontSize: '14px' }}>Ticket ID</Text>
+                      <Text style={{ color: '#0f172a', fontSize: '14px', fontWeight: 600 }}>{selectedTask.complaintId}</Text>
                     </div>
 
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ color: '#64748b', fontSize: '14px' }}>Customer Name</Text>
+                      <Text style={{ color: '#0f172a', fontSize: '14px', fontWeight: 600 }}>{selectedTask.customerName}</Text>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ color: '#64748b', fontSize: '14px' }}>Priority</Text>
+                      <Tag color={selectedTask.priority === 'HIGHLY_SENSITIVE' ? 'red' : selectedTask.priority === 'SENSITIVE' ? 'orange' : 'green'} style={{ margin: 0, fontWeight: 600 }}>
+                        {selectedTask.priority || 'SENSITIVE'}
+                      </Tag>
+                    </div>
+
+                    {selectedTask.variables?.resolutionDetails && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Text style={{ color: '#64748b', fontSize: '14px' }}>Resolution Details</Text>
+                        <Text style={{ color: '#0f172a', fontSize: '14px', fontWeight: 500, textAlign: 'right', maxWidth: '280px' }}>
+                          {selectedTask.variables.resolutionDetails}
+                        </Text>
+                      </div>
+                    )}
+
+                    {selectedTask.variables?.actionTaken && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Text style={{ color: '#64748b', fontSize: '14px' }}>Action Taken</Text>
+                        <Text style={{ color: '#0f172a', fontSize: '14px', fontWeight: 500, textAlign: 'right', maxWidth: '280px' }}>
+                          {selectedTask.variables.actionTaken}
+                        </Text>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Col>
+              
+              <Col xs={24} lg={11}>
+                <div style={{
+                  background: '#f8fafc',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  border: '1px solid #f1f5f9'
+                }}>
+                  <div style={{ marginBottom: '16px' }}>
+                    <Text style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+                      Send Final Customer Notification
+                    </Text>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+                    <Alert
+                      message="Customer Feedback Link Included"
+                      description="The customer survey feedback link (http://localhost:3000/customer-feedback?token=...) is automatically appended to this notification message upon sending."
+                      type="info"
+                      showIcon
+                      style={{ marginBottom: '16px', borderRadius: '8px' }}
+                    />
+
                     <div style={{ marginBottom: '16px' }}>
-                      <Text strong>Notification Message:</Text>
+                      <Text style={{ color: '#475569', fontSize: '14px', fontWeight: 500, display: 'block', marginBottom: '8px' }}>
+                        Official Message to Customer:
+                      </Text>
                       <Input.TextArea
                         value={notificationMessage}
                         onChange={(e) => setNotificationMessage(e.target.value)}
-                        rows={10}
-                        style={{ marginTop: '8px', fontSize: '14px', lineHeight: '1.5', fontFamily: 'inherit' }}
+                        rows={7}
+                        style={{ fontSize: '14px', lineHeight: '1.5', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                       />
                     </div>
 
@@ -329,12 +227,12 @@ function ServiceQualityDashboard() {
                       loading={isSubmitting}
                       icon={<SendOutlined />}
                       size="large"
-                      style={{ width: '100%' }}
+                      style={{ width: '100%', borderRadius: '8px', height: '44px', fontWeight: 600 }}
                     >
-                      {isSubmitting ? 'Sending...' : 'Send Notification'}
+                      {isSubmitting ? 'Sending...' : 'Send Resolution Notification'}
                     </Button>
-                  </Space>
-                </Card>
+                  </div>
+                </div>
               </Col>
             </Row>
           </div>

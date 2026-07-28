@@ -34,7 +34,9 @@ function BranchStaff() {
           task.name.includes('First Contact Resolution') || 
           task.name.includes('FIrst Contact Resolution') ||
           task.name.includes('Register Complaint') ||
-          task.definitionKey === 'FormTask_72'
+          task.name.includes('Secondary Resolution Review') ||
+          task.definitionKey === 'FormTask_72' ||
+          task.definitionKey === 'SecondaryResolutionReview'
         )
       );
       setTasks(branchTasks);
@@ -262,6 +264,17 @@ function BranchStaff() {
             Back to Tasks
           </Button>
 
+          {selectedTask.name && selectedTask.name.includes('Secondary Resolution Review') && (
+            <Alert
+              message="Resolution Disputed - Secondary Review Required"
+              description="The customer has rejected the previously provided resolution. Please investigate their feedback details below and formulate a corrective secondary resolution."
+              type="warning"
+              showIcon
+              closable={false}
+              style={{ marginBottom: '24px' }}
+            />
+          )}
+
           <Row gutter={[24, 24]}>
             <Col xs={24} lg={12}>
               <Card title="Complaint Information" className="form-section">
@@ -283,13 +296,6 @@ function BranchStaff() {
                       {selectedTask.priority}
                     </Tag>
                   </div>
-                  <div>
-                    <Text type="secondary">SLA Status:</Text>
-                    <br />
-                    <Tag color={getSlaStatusColor(selectedTask.slaStatus)}>
-                      {selectedTask.slaStatus}
-                    </Tag>
-                  </div>
                   {selectedTask.variables?.complaint && (
                     <div>
                       <Text type="secondary">Description:</Text>
@@ -299,36 +305,87 @@ function BranchStaff() {
                       </Paragraph>
                     </div>
                   )}
+
+                  {/* Customer Feedback Details */}
+                  {selectedTask.name && selectedTask.name.includes('Secondary Resolution Review') && (
+                    <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #f0f0f0' }}>
+                      <Text strong style={{ display: 'block', marginBottom: '12px', color: '#b78700' }}>
+                        Customer Survey Feedback Details:
+                      </Text>
+                      <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                        <div>
+                          <Text strong>Satisfaction Score (CSAT):</Text>{' '}
+                          <Tag color="red">{selectedTask.variables?.csatScore || 'N/A'} / 5</Tag>
+                        </div>
+                        <div>
+                          <Text strong>Net Promoter Score (NPS):</Text>{' '}
+                          <Tag color="volcano">{selectedTask.variables?.npsScore || 'N/A'} / 10</Tag>
+                        </div>
+                        {selectedTask.variables?.npsComment && (
+                          <div style={{ paddingLeft: '12px', borderLeft: '2px solid #d9d9d9' }}>
+                            <Text type="secondary">NPS Comment:</Text>{' '}
+                            <Text italic>"{selectedTask.variables.npsComment}"</Text>
+                          </div>
+                        )}
+                        <div>
+                          <Text strong>Customer Effort Score (CES):</Text>{' '}
+                          <Tag color="orange">{selectedTask.variables?.cesScore || 'N/A'} / 7</Tag>
+                        </div>
+                        {selectedTask.variables?.cesComment && (
+                          <div style={{ paddingLeft: '12px', borderLeft: '2px solid #d9d9d9' }}>
+                            <Text type="secondary">CES Comment:</Text>{' '}
+                            <Text italic>"{selectedTask.variables.cesComment}"</Text>
+                          </div>
+                        )}
+                        {selectedTask.variables?.customerFeedbackComment && (
+                          <div>
+                            <Text strong>Customer Comments:</Text>
+                            <Paragraph style={{ background: '#f5f5f5', padding: '8px 12px', borderRadius: '4px', marginTop: '4px' }}>
+                              {selectedTask.variables.customerFeedbackComment}
+                            </Paragraph>
+                          </div>
+                        )}
+                      </Space>
+                    </div>
+                  )}
                 </Space>
               </Card>
             </Col>
             
             <Col xs={24} lg={12}>
-              <Card title="Branch Resolution" className="form-section">
+              <Card 
+                title={selectedTask.name && selectedTask.name.includes('Secondary Resolution Review') ? "Secondary Resolution Review & Action" : "Branch Resolution"} 
+                className="form-section"
+              >
                 <Form onFinish={handleSubmit} layout="vertical">
-                  <Form.Item>
-                    <Checkbox
-                      name="isFCR"
-                      checked={formData.isFCR}
-                      onChange={(e) => handleFormChange({ target: { name: 'isFCR', value: e.target.checked } })}
-                    >
-                      Resolved at first contact?
-                    </Checkbox>
-                    <div style={{ marginTop: '8px' }}>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        <ExclamationCircleOutlined style={{ marginRight: '4px' }} />
-                        If checked, the complaint will be closed. If not, it will be sent to CMD.
-                      </Text>
-                    </div>
-                  </Form.Item>
+                  {!(selectedTask.name && selectedTask.name.includes('Secondary Resolution Review')) && (
+                    <Form.Item>
+                      <Checkbox
+                        name="isFCR"
+                        checked={formData.isFCR}
+                        onChange={(e) => handleFormChange({ target: { name: 'isFCR', value: e.target.checked } })}
+                      >
+                        Resolved at first contact?
+                      </Checkbox>
+                      <div style={{ marginTop: '8px' }}>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                          <ExclamationCircleOutlined style={{ marginRight: '4px' }} />
+                          If checked, the complaint will be closed. If not, it will be sent to CMD.
+                        </Text>
+                      </div>
+                    </Form.Item>
+                  )}
 
-                  <Form.Item label="FCR Comments (optional)">
+                  <Form.Item 
+                    label={selectedTask.name && selectedTask.name.includes('Secondary Resolution Review') ? "Secondary Investigation Findings & Action Taken" : "FCR Comments (optional)"}
+                    required
+                  >
                     <Input.TextArea
                       name="fcrComments"
                       value={formData.fcrComments}
                       onChange={(e) => handleFormChange(e)}
-                      rows={4}
-                      placeholder="Enter resolution details or comments..."
+                      rows={6}
+                      placeholder={selectedTask.name && selectedTask.name.includes('Secondary Resolution Review') ? "Enter details of manager secondary investigation and resolution..." : "Enter resolution details or comments..."}
                     />
                   </Form.Item>
 
@@ -337,11 +394,17 @@ function BranchStaff() {
                       type="primary"
                       htmlType="submit"
                       loading={isSubmitting}
-                      icon={formData.isFCR ? <CheckCircleOutlined /> : null}
+                      icon={(!selectedTask.name || !selectedTask.name.includes('Secondary Resolution Review')) && formData.isFCR ? <CheckCircleOutlined /> : null}
                       size="large"
-                      style={{ width: '100%' }}
+                      style={{ width: '100%', background: selectedTask.name && selectedTask.name.includes('Secondary Resolution Review') ? '#faad14' : undefined, borderColor: selectedTask.name && selectedTask.name.includes('Secondary Resolution Review') ? '#faad14' : undefined }}
                     >
-                      {isSubmitting ? 'Processing...' : formData.isFCR ? 'Resolve and Close' : 'Send to CMD'}
+                      {isSubmitting 
+                        ? 'Processing...' 
+                        : (selectedTask.name && selectedTask.name.includes('Secondary Resolution Review'))
+                          ? 'Submit Secondary Resolution' 
+                          : formData.isFCR 
+                            ? 'Resolve and Close' 
+                            : 'Send to CMD'}
                     </Button>
                   </Form.Item>
                 </Form>

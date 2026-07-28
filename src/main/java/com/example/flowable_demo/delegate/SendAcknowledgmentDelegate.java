@@ -30,22 +30,45 @@ public class SendAcknowledgmentDelegate implements JavaDelegate {
 
         String customerName = customer != null ? (String) customer.get("name") : "Valued Customer";
         
-        // Professional acknowledgment message
-        String message = String.format(
-            "Dear %s,\n\n" +
-            "We acknowledge receipt of your complaint %s.\n\n" +
-            "Your case is now being processed by our team. We will review your complaint thoroughly and provide you with updates on the resolution progress.\n\n" +
-            "You can reference your ticket number %s for any follow-up inquiries.\n\n" +
-            "We appreciate your patience and will do our best to resolve your matter promptly.\n\n" +
-            "Best regards,\n" +
-            "Customer Service Team\n" +
-            "Complaint Management System",
-            customerName,
-            ticketId,
-            ticketId
-        );
-        
-        String subject = "Complaint Acknowledgment - Ticket #" + ticketId;
+        String preferredLanguage = (String) execution.getVariable("preferredLanguage");
+        if (preferredLanguage == null && customer != null) {
+            preferredLanguage = (String) customer.getOrDefault("preferredLanguage", "english");
+        }
+
+        String message;
+        String subject;
+
+        if ("amharic".equalsIgnoreCase(preferredLanguage)) {
+            subject = "የቅሬታ መቀበያ ማረጋገጫ - የቲኬት ቁጥር #" + ticketId;
+            message = String.format(
+                "ውድ %s፣\n\n" +
+                "ቅሬታዎ %s በተሳካ ሁኔታ መድረሱን ማረጋገጥ እንወዳለን።\n\n" +
+                "ጉዳይዎ በአሁኑ ጊዜ በቡድናችን እየታየ ነው። ቅሬታዎን በጥልቀት መርምረን የመፍትሄ ሂደቱን እናሳውቆታለን።\n\n" +
+                "ለማንኛውም ክትትል የቅሬታ ቁጥር %s በመጥቀስ መከታተል ይችላሉ።\n\n" +
+                "ለትዕግስትዎ እያመሰገንን ጉዳዩን በአፋጣኝ ለመፍታት የምንችለውን ሁሉ እናደርጋለን።\n\n" +
+                "በመልካም አክብሮት፣\n" +
+                "የደንበኞች አገልግሎት ክፍል\n" +
+                "ዳሽን ባንክ",
+                customerName,
+                ticketId,
+                ticketId
+            );
+        } else {
+            subject = "Complaint Acknowledgment - Ticket #" + ticketId;
+            message = String.format(
+                "Dear %s,\n\n" +
+                "We acknowledge receipt of your complaint %s.\n\n" +
+                "Your case is now being processed by our team. We will review your complaint thoroughly and provide you with updates on the resolution progress.\n\n" +
+                "You can reference your ticket number %s for any follow-up inquiries.\n\n" +
+                "We appreciate your patience and will do our best to resolve your matter promptly.\n\n" +
+                "Best regards,\n" +
+                "Customer Service Team\n" +
+                "Complaint Management System",
+                customerName,
+                ticketId,
+                ticketId
+            );
+        }
 
         if (email != null) {
             notificationService.sendEmail(email, subject, message);

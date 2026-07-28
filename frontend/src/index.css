@@ -101,6 +101,58 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 0 0 2px rgba(1, 33, 105, 0.1) !important;
 }
 
+/* Modern Search Bar Design (matching filter border radius) */
+.pill-search-input.ant-input-affix-wrapper,
+.pill-search-input.ant-input,
+.ant-input-affix-wrapper:has(.ant-input-prefix .anticon-search) {
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  border: 1px solid #dce2eb !important;
+  padding: 8px 16px !important;
+  height: 40px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.pill-search-input.ant-input-affix-wrapper:hover,
+.pill-search-input.ant-input:hover,
+.ant-input-affix-wrapper:has(.ant-input-prefix .anticon-search):hover {
+  border-color: #cbd5e1 !important;
+  background: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+
+.pill-search-input.ant-input-affix-wrapper:focus,
+.pill-search-input.ant-input-affix-wrapper-focused,
+.pill-search-input.ant-input:focus,
+.ant-input-affix-wrapper-focused:has(.ant-input-prefix .anticon-search) {
+  border-color: var(--primary-color) !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(1, 33, 105, 0.12) !important;
+}
+
+.pill-search-input .ant-input-prefix,
+.ant-input-affix-wrapper:has(.ant-input-prefix .anticon-search) .ant-input-prefix {
+  margin-right: 10px !important;
+  color: #475569 !important;
+  font-size: 16px !important;
+}
+
+.pill-search-input .ant-input,
+.ant-input-affix-wrapper:has(.ant-input-prefix .anticon-search) .ant-input {
+  background: transparent !important;
+  border: none !important;
+  font-size: 13.5px !important;
+  color: #1e293b !important;
+  padding: 0 !important;
+}
+
+.pill-search-input input::placeholder,
+.ant-input-affix-wrapper:has(.ant-input-prefix .anticon-search) input::placeholder {
+  color: #64748b !important;
+  font-weight: 400 !important;
+}
+
 .ant-select-selector {
   border-radius: 6px !important;
   border: 1px solid #d1d5db !important;

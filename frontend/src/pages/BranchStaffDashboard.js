@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Typography, Button, Tag, Empty, Alert, Form, Input, Checkbox, Space, Row, Col, Modal, Select, Progress, Tooltip } from 'antd';
-import { DeleteOutlined, ArrowLeftOutlined, CheckCircleOutlined, ExclamationCircleOutlined, PlusOutlined, DashboardOutlined, FilterOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Card, Typography, Button, Form, Input, Select, Alert, Row, Col, Space, Divider, Checkbox } from 'antd';
+import { PlusCircleOutlined, InfoCircleOutlined, CheckCircleOutlined, CloudUploadOutlined, PaperClipOutlined, DeleteOutlined } from '@ant-design/icons';
 import DashboardLayout from '../components/DashboardLayout';
 import ApiService from '../services/api';
 import { BRAND_COLORS } from '../constants/theme';
@@ -8,275 +8,142 @@ import { BRAND_COLORS } from '../constants/theme';
 const { Title, Text, Paragraph } = Typography;
 
 function BranchStaffDashboard() {
-  const [tasks, setTasks] = useState([]);
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
-    isFCR: false,
-    fcrComments: ''
-  });
+  const [form] = Form.useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
-  const [clearingTasks, setClearingTasks] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [slaMetrics, setSlaMetrics] = useState([]);
-  const [slaLoading, setSlaLoading] = useState(false);
-  const [staffFormData, setStaffFormData] = useState({
-    customerName: '',
-    email: '',
-    phone: '',
-    accountNumber: '',
-    complaintCategory: 'general',
-    complaintDescription: '',
-    channel: 'branch',
-    isFCR: false,
-    fcrComments: ''
-  });
-  const [modalForm] = Form.useForm();
+  const [fcrChecked, setFcrChecked] = useState(false);
 
-  useEffect(() => {
-    loadTasks();
-    fetchSlaMetrics();
-  }, []);
+  // Voice Attachment States
+  const [voiceAttachmentUrl, setVoiceAttachmentUrl] = useState('');
+  const [voiceAttachmentName, setVoiceAttachmentName] = useState('');
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
 
-  const fetchSlaMetrics = async () => {
+  // Evidence Attachment States
+  const [evidenceUrl, setEvidenceUrl] = useState('');
+  const [evidenceName, setEvidenceName] = useState('');
+  const [isUploadingEvidence, setIsUploadingEvidence] = useState(false);
+
+  // Handle file upload selection
+  const handleAudioUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploadingAudio(true);
     try {
-      setSlaLoading(true);
-      const data = await ApiService.getAllSlaMetrics();
-      setSlaMetrics(data || []);
-    } catch (err) {
-      console.error('Failed to load SLA metrics:', err);
-    } finally {
-      setSlaLoading(false);
-    }
-  };
-
-  const loadTasks = async () => {
-    try {
-      setLoading(true);
-      const tasksData = await ApiService.getEnrichedTasks();
-      const branchTasks = tasksData.filter(task =>
-        task.name && (
-          task.name.includes('First Contact Resolution') ||
-          task.name.includes('FIrst Contact Resolution') ||
-          task.name.includes('Register Complaint') ||
-          task.definitionKey === 'FormTask_72'
-        )
-      );
-      setTasks(branchTasks);
+      const response = await ApiService.uploadAudio(file, file.name);
+      setVoiceAttachmentUrl(response.url);
+      setVoiceAttachmentName(response.fileName);
     } catch (error) {
-      setError('Failed to load tasks');
-      console.error('Error loading tasks:', error);
+      console.error('Audio upload failed:', error);
+      alert('Failed to upload audio file. Please try again.');
     } finally {
-      setLoading(false);
+      setIsUploadingAudio(false);
     }
   };
 
-  const clearAllTasks = async () => {
-    if (window.confirm('Are you sure you want to clear all tasks? This action cannot be undone.')) {
-      setClearingTasks(true);
-      try {
-        const allTasks = await ApiService.getTasks();
-        // Use a Set to collect unique processInstanceIds to avoid redundant calls
-        const uniqueProcessIds = [...new Set(allTasks.map(task => task.processInstanceId))];
+  const handleEvidenceUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-        const clearPromises = uniqueProcessIds.map(id =>
-          ApiService.deleteProcessInstance(id)
-        );
-
-        await Promise.all(clearPromises);
-        setMessage('All tasks cleared successfully!');
-        setSelectedTask(null);
-        setFormData({ isFCR: false, fcrComments: '' });
-        await loadTasks();
-
-        setTimeout(() => setMessage(''), 3000);
-      } catch (error) {
-        setMessage('Failed to clear some tasks');
-        console.error('Error clearing tasks:', error);
-      } finally {
-        setClearingTasks(false);
-      }
-    }
-  };
-
-  const handleTaskSelect = async (task) => {
-    setSelectedTask(task);
-    setMessage('');
+    setIsUploadingEvidence(true);
     try {
-      await loadTasks();
+      const response = await ApiService.uploadEvidence(file);
+      setEvidenceUrl(response.url);
+      setEvidenceName(response.fileName);
     } catch (error) {
-      setMessage('Failed to select task');
-      console.error('Error selecting task:', error);
+      console.error('Evidence upload failed:', error);
+      alert('Failed to upload evidence file. Please try again.');
+    } finally {
+      setIsUploadingEvidence(false);
     }
   };
 
-  const handleFormChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+  const normalizePhone = (phone) => {
+    if (!phone) return phone;
+    if (phone.startsWith('09')) return '+251' + phone.substring(1);
+    if (phone.startsWith('9')) return '+251' + phone;
+    return phone;
   };
 
   const handleSubmit = async (values) => {
-    // Ant Design onFinish passes form values, not an event
-    if (!selectedTask) return;
-
     setIsSubmitting(true);
     setMessage('');
 
     try {
-      const variables = {
-        isFCR: formData.isFCR,
-        fcrComments: formData.fcrComments || ''
-      };
-
-      await ApiService.completeTask(selectedTask.id, variables);
-
-      if (formData.isFCR) {
-        setMessage('Task completed! Complaint resolved and customer will be notified.');
-      } else {
-        setMessage('Task completed! Complaint has been escalated to CMD for screening.');
-      }
-
-      setFormData({ isFCR: false, fcrComments: '' });
-      setSelectedTask(null);
-      await loadTasks();
-    } catch (error) {
-      setMessage('Failed to complete task');
-      console.error('Error completing task:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleStaffSubmit = async () => {
-    try {
-      const values = await modalForm.validateFields();
-      setIsSubmitting(true);
-
-      let phone = values.phone;
-      if (phone.startsWith('09')) phone = '+251' + phone.substring(1);
-      else if (phone.startsWith('9')) phone = '+251' + phone;
+      const phone = normalizePhone(values.phone);
 
       const payload = {
         customer: {
           name: values.customerName,
-          email: values.email,
+          email: values.email || '',
           phone: phone,
-          accountNumber: values.accountNumber || ''
+          accountNumber: values.accountNumber,
+          preferredContactMethod: values.preferredContactMethod || 'Email'
         },
         complaint: {
           channel: values.channel || 'branch',
           category: values.complaintCategory,
-          description: values.complaintDescription
-        },
-        isFCR: values.isFCR,
-        fcrComments: values.fcrComments || ''
+          description: values.complaintDescription,
+          branch: values.branch || '',
+          resolutionNotes: values.resolutionNotes || '',
+          voiceAttachmentUrl: voiceAttachmentUrl || undefined,
+          voiceAttachmentName: voiceAttachmentName || undefined,
+          evidenceUrl: evidenceUrl || undefined,
+          evidenceName: evidenceName || undefined
+        }
       };
 
-      await ApiService.staffSubmitComplaint(payload);
+      if (fcrChecked) {
+        const result = await ApiService.fcrResolveComplaint(payload);
+        setMessage(`FCR_SUCCESS: Complaint resolved at First Contact Resolution. Ticket: ${result.ticketId}`);
+      } else {
+        await ApiService.staffSubmitComplaint(payload);
+        setMessage('Success: Complaint registered successfully and sent directly to CMD screening.');
+      }
 
-      setMessage(values.isFCR ? 'Complaint registered and resolved successfully!' : 'Complaint registered successfully and sent to CMD.');
-      setIsModalOpen(false);
-      modalForm.resetFields();
-      setStaffFormData({
-        customerName: '',
-        email: '',
-        phone: '',
-        accountNumber: '',
-        complaintCategory: 'general',
-        complaintDescription: '',
-        channel: 'branch',
-        isFCR: false,
-        fcrComments: ''
-      });
-
-      // Small delay to allow Flowable to finish the transaction and advance the process
-      setTimeout(() => {
-        loadTasks();
-      }, 1000);
+      form.resetFields();
+      setFcrChecked(false);
+      setVoiceAttachmentUrl('');
+      setVoiceAttachmentName('');
+      setEvidenceUrl('');
+      setEvidenceName('');
     } catch (error) {
       console.error('Error submitting complaint:', error);
-      if (!error.errorFields) {
-        setMessage('Failed to submit complaint');
-      }
+      setMessage('Error: Failed to submit complaint. Please check fields and try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
-  if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-      <Card loading={true} style={{ width: '100%', maxWidth: '600px' }} />
-    </div>
-  );
 
-  if (error) return (
-    <Alert
-      message="Error"
-      description={error}
-      type="error"
-      showIcon
-      style={{ margin: '20px' }}
-    />
-  );
-  const getPriorityColor = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case 'p1': return 'red';
-      case 'p2': return 'orange';
-      case 'p3': return 'green';
-      default: return 'blue';
-    }
-  };
-  const getSlaStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'overdue': return 'error';
-      case 'approaching': return 'warning';
-      default: return 'success';
-    }
-  };
+  const isFcrSuccess = message.startsWith('FCR_SUCCESS');
+  const isSuccess = message.startsWith('Success') || isFcrSuccess;
+  const displayMessage = message.replace(/^(FCR_SUCCESS|Success|Error):\s*/, '');
 
   return (
     <DashboardLayout userRole="branch-staff">
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
             <Title level={2} style={{ margin: 0, color: BRAND_COLORS.primary }}>
-              Branch Staff Dashboard
+              Register Customer Complaint
             </Title>
-            <Text type="secondary" style={{ fontSize: '16px' }}>
-              Manage and resolve customer complaints
+            <Text type="secondary" style={{ fontSize: '15px' }}>
+              Branch Complaint Intake Portal
             </Text>
           </div>
-          <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setIsModalOpen(true)}
-              size="large"
-            >
-              Fill Complaint
-            </Button>
-            <Button
-              danger
-              icon={<DeleteOutlined />}
-              onClick={clearAllTasks}
-              disabled={clearingTasks}
-              loading={clearingTasks}
-              size="large"
-            >
-              Clear All Tasks
-            </Button>
-          </Space>
         </div>
 
         {message && (
           <Alert
-            message={message.includes('success') ? 'Success' : 'Information'}
-            description={message}
-            type={message.includes('success') ? 'success' : 'info'}
+            message={
+              isFcrSuccess
+                ? 'Resolved at First Contact'
+                : isSuccess
+                  ? 'Success'
+                  : 'Error'
+            }
+            description={displayMessage}
+            type={isSuccess ? 'success' : 'error'}
             showIcon
             closable
             style={{ marginBottom: '24px' }}
@@ -284,403 +151,367 @@ function BranchStaffDashboard() {
           />
         )}
 
-        {/* Analytics Summary — hidden when a task is selected */}
-        {!selectedTask && (() => {
-          // Filter to active/unresolved complaints that correspond strictly to current visible tasks
-          const activeTaskComplaintIds = new Set(tasks.map(t => t.complaintId).filter(Boolean));
-          const activeSlaMetrics = slaMetrics.filter(m => activeTaskComplaintIds.has(m.complaintId));
-          const totalComplaints = activeSlaMetrics.length;
-
-          const categoriesMap = {
-            financial: { label: 'Financial', color: '#cf1322' },
-            atm: { label: 'ATM', color: '#1890ff' },
-            technical: { label: 'Technical', color: '#722ed1' },
-            account: { label: 'Account', color: '#52c41a' },
-            loan: { label: 'Loan', color: '#fa8c16' },
-            branch: { label: 'Branch', color: '#eb2f96' },
-            mobile: { label: 'Mobile', color: '#13c2c2' },
-            fraud: { label: 'Fraud', color: '#f5222d' },
-            employee_behaviour: { label: 'Employee Behaviour', color: '#fa541c' },
-            internet_banking: { label: 'Internet Banking', color: '#0050b3' },
-            super_app: { label: 'Super App', color: '#ff4d4f' },
-            general: { label: 'General', color: '#faad14' }
-          };
-
-          const categoryData = Object.keys(categoriesMap).map(key => {
-            const count = activeSlaMetrics.filter(m => m.complaintCategory === key).length;
-            return {
-              key,
-              name: categoriesMap[key].label,
-              color: categoriesMap[key].color,
-              count,
-              percent: totalComplaints > 0 ? (count / totalComplaints) * 100 : 0
-            };
-          }).sort((a, b) => b.count - a.count);
-
-          const radius = 48;
-          const circumference = 2 * Math.PI * radius;
-          let currentRotation = -90; // Initialize rotation angle
-
-          return (
-            <div style={{ marginBottom: '24px' }}>
-              <Card
-                title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><DashboardOutlined /> Complaint Category Analytics</span>}
-                bordered={true}
-                loading={slaLoading}
-                style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
+        <Row gutter={[24, 24]}>
+          <Col xs={24} lg={16}>
+            <Card
+              bordered={true}
+              style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
+            >
+              <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleSubmit}
+                initialValues={{
+                  complaintCategory: 'general',
+                  channel: 'branch',
+                  preferredContactMethod: 'Email'
+                }}
               >
-                <Row gutter={[32, 24]} align="middle">
-                  {/* Dynamic Category Donut Chart */}
-                  <Col xs={24} md={12} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <div style={{ position: 'relative', width: '140px', height: '140px', flexShrink: 0 }}>
-                      <svg width="100%" height="100%" viewBox="0 0 120 120">
-                        {/* Background base circle */}
-                        <circle
-                          cx="60"
-                          cy="60"
-                          r={radius}
-                          fill="transparent"
-                          stroke="#f0f0f0"
-                          strokeWidth="12"
-                        />
-                        {totalComplaints > 0 && categoryData.filter(c => c.count > 0).map((cat) => {
-                          const strokeDashoffset = circumference - (cat.percent / 100) * circumference;
-                          const rotation = currentRotation;
-                          currentRotation += (cat.percent / 100) * 360; // Shift start of next slice
-                          return (
-                            <Tooltip
-                              key={cat.key}
-                              title={<div style={{ textAlign: 'center' }}><strong>{cat.name}</strong><br/>{cat.count} complaints ({Math.round(cat.percent)}%)</div>}
-                              placement="top"
-                            >
-                              <circle
-                                cx="60"
-                                cy="60"
-                                r={radius}
-                                fill="transparent"
-                                stroke={cat.color}
-                                strokeWidth="12"
-                                strokeDasharray={circumference}
-                                strokeDashoffset={strokeDashoffset}
-                                transform={`rotate(${rotation} 60 60)`}
-                                strokeLinecap="round"
-                                style={{ 
-                                  transition: 'stroke-dashoffset 0.8s ease, transform 0.8s ease, stroke-width 0.2s ease',
-                                  cursor: 'pointer'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.target.setAttribute('stroke-width', '15');
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.target.setAttribute('stroke-width', '12');
-                                }}
-                              />
-                            </Tooltip>
-                          );
-                        })}
-                      </svg>
-                      {/* Center Info Label */}
-                      <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        textAlign: 'center'
-                      }}>
-                        <div style={{ fontSize: '26px', fontWeight: '800', color: BRAND_COLORS.primary, lineHeight: 1 }}>
-                          {totalComplaints}
-                        </div>
-                        <div style={{ fontSize: '10px', color: '#8c8c8c', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total</div>
-                      </div>
-                    </div>
+                <Title level={4} style={{ color: BRAND_COLORS.primary, marginTop: 0, marginBottom: '20px' }}>
+                  Customer Information
+                </Title>
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="customerName"
+                      label="Customer Name"
+                      rules={[{ required: true, message: 'Please enter the customer name' }]}
+                    >
+                      <Input placeholder="Full Name" />
+                    </Form.Item>
                   </Col>
-
-                  {/* Category Progress Breakdown */}
-                  <Col xs={24} md={12} className="card-vertical-divider">
-                    <div style={{ maxHeight: '180px', overflowY: 'auto', paddingRight: '8px' }}>
-                      {categoryData.filter(c => c.count > 0).length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '24px 0', color: '#bfbfbf' }}>No complaints registered yet</div>
-                      ) : (
-                        categoryData.filter(c => c.count > 0).map((cat, idx) => (
-                          <div key={idx} style={{ marginBottom: '10px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '2px' }}>
-                              <span style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: cat.color, display: 'inline-block' }}></span>
-                                {cat.name}
-                              </span>
-                              <span style={{ color: '#8c8c8c' }}>{cat.count} ({Math.round(cat.percent)}%)</span>
-                            </div>
-                            <Progress
-                              percent={Math.round(cat.percent)}
-                              size="small"
-                              showInfo={false}
-                              strokeColor={cat.color}
-                            />
-                          </div>
-                        ))
-                      )}
-                    </div>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="email"
+                      label="Email Address (Optional)"
+                      rules={[{ type: 'email', message: 'Please enter a valid email' }]}
+                    >
+                      <Input placeholder="Email Address" />
+                    </Form.Item>
                   </Col>
                 </Row>
-              </Card>
-            </div>
-          );
-        })()}
 
-        {!selectedTask ? (
-          <div>
-            {tasks.length === 0 ? (
-              <Empty
-                description="No tasks available"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                style={{ marginTop: '60px' }}
-              />
-            ) : (
-              <Row gutter={[24, 24]}>
-                {tasks.map(task => (
-                  <Col xs={24} sm={24} md={12} lg={8} xl={6} key={task.id}>
-                    <Card
-                      hoverable
-                      className={`task-card task-priority-${getPriorityColor(task.priority)}`}
-                      onClick={() => handleTaskSelect(task)}
-                      size="small"
-                      title={
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Text strong style={{ fontSize: '14px' }}>
-                            {task.name}
-                          </Text>
-                          <Tag color={getSlaStatusColor(task.slaStatus)}>
-                            {task.slaStatus}
-                          </Tag>
-                        </div>
-                      }
-                      extra={
-                        <Tag color={getPriorityColor(task.priority)}>
-                          {task.priority}
-                        </Tag>
-                      }
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="phone"
+                      label="Preferred Contact Number"
+                      extra={<span style={{ fontSize: '12px', color: '#8c8c8c' }}>Please provide the phone number currently in use so we can contact you regarding your complaint.</span>}
+                      rules={[
+                        { required: true, message: 'Please enter the contact number' },
+                        {
+                          pattern: /^(\+2519\d{8}|09\d{8}|9\d{8})$/,
+                          message: 'Please enter a valid phone number (e.g. +2519xxxxxxxx or 09xxxxxxxx)'
+                        }
+                      ]}
                     >
-                      <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                        <div>
-                          <Text type="secondary">Ticket ID:</Text>
-                          <br />
-                          <Text code>{task.complaintId}</Text>
-                        </div>
-                        <div>
-                          <Text type="secondary">Customer:</Text>
-                          <br />
-                          <Text>{task.customerName}</Text>
-                        </div>
-                        <div>
-                          <Text type="secondary">Created:</Text>
-                          <br />
-                          <Text>{new Date(task.createdAt).toLocaleDateString()}</Text>
-                        </div>
-                      </Space>
-                    </Card>
+                      <Input placeholder="+2519xxxxxxxx or 09xxxxxxxx" />
+                    </Form.Item>
                   </Col>
-                ))}
-              </Row>
-            )}
-          </div>
-        ) : (
-          <div>
-            <Button
-              icon={<ArrowLeftOutlined />}
-              onClick={() => setSelectedTask(null)}
-              style={{ marginBottom: '24px' }}
-            >
-              Back to Tasks
-            </Button>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="accountNumber"
+                      label="Account Number"
+                      rules={[
+                        { required: true, message: 'Account number is mandatory' },
+                        { len: 13, message: 'Account number must be exactly 13 digits' }
+                      ]}
+                    >
+                      <Input placeholder="13-digit account number" maxLength={13} />
+                    </Form.Item>
+                  </Col>
+                </Row>
 
-            <Row gutter={[24, 24]}>
-              <Col xs={24} lg={12}>
-                <Card title="Complaint Information" className="form-section">
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    <div>
-                      <Text type="secondary">Ticket ID:</Text>
-                      <br />
-                      <Text code>{selectedTask.complaintId}</Text>
-                    </div>
-                    <div>
-                      <Text type="secondary">Customer Name:</Text>
-                      <br />
-                      <Text>{selectedTask.customerName}</Text>
-                    </div>
-                    <div>
-                      <Text type="secondary">Priority:</Text>
-                      <br />
-                      <Tag color={getPriorityColor(selectedTask.priority)}>
-                        {selectedTask.priority}
-                      </Tag>
-                    </div>
-                    <div>
-                      <Text type="secondary">SLA Status:</Text>
-                      <br />
-                      <Tag color={getSlaStatusColor(selectedTask.slaStatus)}>
-                        {selectedTask.slaStatus}
-                      </Tag>
-                    </div>
-                    {selectedTask.variables?.complaint && (
-                      <div>
-                        <Text type="secondary">Description:</Text>
-                        <br />
-                        <Paragraph italic style={{ marginBottom: 0 }}>
-                          {selectedTask.variables.complaint.description}
-                        </Paragraph>
-                      </div>
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="branch"
+                      label="Branch (Optional)"
+                    >
+                      <Input placeholder="Select or enter your branch (optional)" />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="preferredContactMethod"
+                      label="Preferred Contact Method"
+                      rules={[{ required: true, message: 'Please select a contact method' }]}
+                    >
+                      <Select placeholder="Select preferred contact method">
+                        <Select.Option value="SMS">SMS</Select.Option>
+                        <Select.Option value="Email">Email</Select.Option>
+                        <Select.Option value="Both">Both</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Divider style={{ margin: '20px 0' }} />
+
+                <Title level={4} style={{ color: BRAND_COLORS.primary, marginTop: 0, marginBottom: '20px' }}>
+                  Complaint Details
+                </Title>
+
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="complaintCategory"
+                      label="Complaint Category"
+                      rules={[{ required: true, message: 'Please select category' }]}
+                    >
+                      <Select placeholder="Select category">
+                        <Select.Option value="financial">Financial - Banking Services</Select.Option>
+                        <Select.Option value="atm">ATM - Card Services</Select.Option>
+                        <Select.Option value="technical">Technical - System Issues</Select.Option>
+                        <Select.Option value="account">Account - Management</Select.Option>
+                        <Select.Option value="loan">Loan - Credit Services</Select.Option>
+                        <Select.Option value="branch">Branch - Customer Service</Select.Option>
+                        <Select.Option value="mobile">Mobile - App/Digital Banking</Select.Option>
+                        <Select.Option value="fraud">Fraud - Security Issues</Select.Option>
+                        <Select.Option value="employee_behaviour">Employee Behaviour - Staff Related</Select.Option>
+                        <Select.Option value="internet_banking">Internet Banking</Select.Option>
+                        <Select.Option value="super_app">Super App</Select.Option>
+                        <Select.Option value="general">General - Other Issues</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="channel"
+                      label="Channel"
+                      rules={[{ required: true, message: 'Please select submission channel' }]}
+                    >
+                      <Select placeholder="Select channel">
+                        <Select.Option value="branch">Branch</Select.Option>
+                        <Select.Option value="phone">Phonecall</Select.Option>
+                        <Select.Option value="social_media">Social Media</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Form.Item
+                  name="complaintDescription"
+                  label="Complaint Description"
+                  rules={[{ required: true, message: 'Please describe the complaint details' }]}
+                >
+                  <Input.TextArea rows={5} placeholder="Provide details of the customer complaint..." />
+                </Form.Item>
+
+                {/* Voice Attachment for Phone Calls */}
+                <Form.Item noStyle shouldUpdate={(prevValues, currentValues) => prevValues.channel !== currentValues.channel}>
+                  {({ getFieldValue }) => {
+                    const channel = getFieldValue('channel');
+                    if (channel === 'phone') {
+                      return (
+                        <div style={{
+                          background: '#fafafa',
+                          border: '1px solid #d9d9d9',
+                          borderRadius: '8px',
+                          padding: '16px 20px',
+                          marginBottom: '20px',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
+                        }}>
+                          <Title level={5} style={{ color: BRAND_COLORS.primary, marginTop: 0, marginBottom: '12px' }}>
+                            <CloudUploadOutlined style={{ marginRight: '8px' }} />
+                            Voice Call Attachment
+                          </Title>
+                          <Text type="secondary" style={{ display: 'block', marginBottom: '12px', fontSize: '13px' }}>
+                            Upload the recorded phone call audio file to attach it to this complaint.
+                          </Text>
+                          <input 
+                            type="file" 
+                            accept="audio/*" 
+                            onChange={handleAudioUpload} 
+                            style={{ display: 'none' }}
+                            id="audio-file-input"
+                          />
+                          <Space>
+                            <Button 
+                              icon={<CloudUploadOutlined />}
+                              onClick={() => document.getElementById('audio-file-input').click()}
+                              loading={isUploadingAudio}
+                            >
+                              {voiceAttachmentUrl ? 'Change Audio File' : 'Choose Audio File'}
+                            </Button>
+                            {voiceAttachmentName && (
+                              <Text type="success">✓ {voiceAttachmentName}</Text>
+                            )}
+                          </Space>
+
+                          {voiceAttachmentUrl && (
+                            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e8e8e8' }}>
+                              <Text type="secondary" style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
+                                Attached Preview:
+                              </Text>
+                              <audio src={voiceAttachmentUrl} controls style={{ width: '100%' }} />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                </Form.Item>
+
+                <div style={{
+                  marginTop: '16px',
+                  padding: '20px',
+                  background: '#f9f9f9',
+                  border: '1px solid #e8e8e8',
+                  borderRadius: '8px'
+                }}>
+                  <Title level={5} style={{ color: BRAND_COLORS.primary, marginTop: 0, marginBottom: '12px' }}>
+                    <PaperClipOutlined style={{ marginRight: '8px' }} />
+                    Evidence Attachment
+                  </Title>
+                  <Text type="secondary" style={{ display: 'block', marginBottom: '12px', fontSize: '13px' }}>
+                    Upload any relevant documents, screenshots, or files to support the complaint (PDF, images, etc.).
+                  </Text>
+                  <input 
+                    type="file" 
+                    accept=".pdf,.png,.jpg,.jpeg,.gif,.doc,.docx,.xls,.xlsx,.txt,.zip"
+                    onChange={handleEvidenceUpload} 
+                    style={{ display: 'none' }}
+                    id="staff-evidence-file-input"
+                  />
+                  <Space>
+                    <Button 
+                      icon={<PaperClipOutlined />}
+                      onClick={() => document.getElementById('staff-evidence-file-input').click()}
+                      loading={isUploadingEvidence}
+                    >
+                      {evidenceUrl ? 'Change Evidence File' : 'Choose Evidence File'}
+                    </Button>
+                    {evidenceName && (
+                      <Space>
+                        <Text type="success">✓ {evidenceName}</Text>
+                        <Button
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => {
+                            setEvidenceUrl('');
+                            setEvidenceName('');
+                          }}
+                          size="small"
+                        />
+                      </Space>
                     )}
                   </Space>
-                </Card>
-              </Col>
+                </div>
 
-              <Col xs={24} lg={12}>
-                <Card title="Branch Resolution" className="form-section">
-                  <Form onFinish={handleSubmit} layout="vertical">
-                    <Form.Item>
-                      <Checkbox
-                        name="isFCR"
-                        checked={formData.isFCR}
-                        onChange={(e) => handleFormChange({ target: { name: 'isFCR', value: e.target.checked } })}
+                <Divider style={{ margin: '20px 0' }} />
+
+                {/* ── First Contact Resolution Section ── */}
+                <div
+                  style={{
+                    background: fcrChecked ? '#f6ffed' : '#fafafa',
+                    border: `1.5px solid ${fcrChecked ? '#b7eb8f' : '#d9d9d9'}`,
+                    borderRadius: '8px',
+                    padding: '16px 20px',
+                    marginBottom: '20px',
+                    transition: 'all 0.25s ease'
+                  }}
+                >
+                  <Form.Item name="fcrResolved" valuePropName="checked" noStyle>
+                    <Checkbox
+                      checked={fcrChecked}
+                      onChange={(e) => {
+                        setFcrChecked(e.target.checked);
+                        if (!e.target.checked) {
+                          form.setFieldsValue({ resolutionNotes: '' });
+                        }
+                      }}
+                      style={{ fontWeight: 600, fontSize: '14px', color: fcrChecked ? '#389e0d' : '#595959' }}
+                    >
+                      Resolved at First Contact Resolution
+                    </Checkbox>
+                  </Form.Item>
+                  <div style={{ marginTop: '6px', marginLeft: '24px' }}>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      Check this if the complaint was fully resolved at the branch without requiring further escalation to CMD.
+                      The complaint will be recorded, a ticket generated, and the case will be immediately closed.
+                    </Text>
+                  </div>
+
+                  {fcrChecked && (
+                    <div style={{ marginTop: '16px' }}>
+                      <Form.Item
+                        name="resolutionNotes"
+                        label={<span style={{ fontWeight: 600, color: '#389e0d' }}>Resolution Notes / Comments</span>}
+                        rules={[{ required: true, message: 'Please provide resolution notes for FCR cases' }]}
+                        style={{ marginBottom: 0 }}
                       >
-                        Resolved at first contact?
-                      </Checkbox>
-                      <div style={{ marginTop: '8px' }}>
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
-                          <ExclamationCircleOutlined style={{ marginRight: '4px' }} />
-                          If checked, the complaint will be closed. If not, it will be sent to CMD.
-                        </Text>
-                      </div>
-                    </Form.Item>
+                        <Input.TextArea
+                          rows={4}
+                          placeholder="Describe how the complaint was resolved at first contact (e.g., information provided, transaction reversed, customer satisfied)..."
+                          style={{ borderColor: '#b7eb8f' }}
+                        />
+                      </Form.Item>
+                    </div>
+                  )}
+                </div>
 
-                    <Form.Item label="FCR Comments (optional)">
-                      <Input.TextArea
-                        name="fcrComments"
-                        value={formData.fcrComments}
-                        onChange={(e) => handleFormChange(e)}
-                        rows={4}
-                        placeholder="Enter resolution details or comments..."
-                      />
-                    </Form.Item>
-
-                    <Form.Item>
-                      <Button
-                        type="primary"
-                        htmlType="submit"
-                        loading={isSubmitting}
-                        icon={formData.isFCR ? <CheckCircleOutlined /> : null}
-                        size="large"
-                        style={{ width: '100%' }}
-                      >
-                        {isSubmitting ? 'Processing...' : formData.isFCR ? 'Resolve and Close' : 'Send to CMD'}
-                      </Button>
-                    </Form.Item>
-                  </Form>
-                </Card>
-              </Col>
-            </Row>
-          </div>
-        )}
-
-        <Modal
-          title={<Title level={3} style={{ color: BRAND_COLORS.primary, margin: 0 }}>Register New Complaint</Title>}
-          open={isModalOpen}
-          onOk={handleStaffSubmit}
-          onCancel={() => setIsModalOpen(false)}
-          confirmLoading={isSubmitting}
-          okText={staffFormData.isFCR ? "Register and Resolve" : "Register Complaint"}
-          width={700}
-          destroyOnClose
-        >
-          <Form
-            form={modalForm}
-            layout="vertical"
-            initialValues={staffFormData}
-            onValuesChange={(changed, all) => setStaffFormData(all)}
-            style={{ marginTop: '20px' }}
-          >
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item name="customerName" label="Customer Name" rules={[{ required: true }]}>
-                  <Input placeholder="Full Name" />
+                <Form.Item style={{ marginTop: '8px' }}>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={isSubmitting}
+                    icon={fcrChecked ? <CheckCircleOutlined /> : <PlusCircleOutlined />}
+                    size="large"
+                    style={{
+                      width: '100%',
+                      background: fcrChecked ? '#52c41a' : undefined,
+                      borderColor: fcrChecked ? '#52c41a' : undefined
+                    }}
+                  >
+                    {isSubmitting
+                      ? (fcrChecked ? 'Closing Case...' : 'Registering...')
+                      : (fcrChecked ? 'Close Case at First Contact' : 'Register and Send to CMD')}
+                  </Button>
                 </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item name="email" label="Email" rules={[{ required: false, type: 'email' }]}>
-                  <Input placeholder="Email Address" />
-                </Form.Item>
-              </Col>
-            </Row>
+              </Form>
+            </Card>
+          </Col>
 
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item name="phone" label="Phone Number" rules={[{ required: true }]}>
-                  <Input placeholder="+2519XXXXXXXX" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item name="accountNumber" label="Account Number">
-                  <Input placeholder="13-digit account number" maxLength={13} />
-                </Form.Item>
-              </Col>
-            </Row>
+          <Col xs={24} lg={8}>
+            <Card
+              title={<span style={{ fontWeight: 600, color: BRAND_COLORS.primary, display: 'flex', alignItems: 'center', gap: '8px' }}><InfoCircleOutlined /> Branch Intake Guide</span>}
+              bordered={true}
+              style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', height: '100%' }}
+            >
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <div>
+                  <Title level={5} style={{ margin: 0, color: BRAND_COLORS.primary }}>1. Verify Customer Identity</Title>
+                  <Paragraph style={{ margin: 0, fontSize: '13px', color: '#595959' }}>
+                    Confirm customer identity using national ID, passport, or driver's license before entering account details.
+                  </Paragraph>
+                </div>
+                <div>
+                  <Title level={5} style={{ margin: 0, color: BRAND_COLORS.primary }}>2. Mandatory Account Numbers</Title>
+                  <Paragraph style={{ margin: 0, fontSize: '13px', color: '#595959' }}>
+                    Ensure the 13-digit account number is correctly entered.
+                  </Paragraph>
+                </div>
+                <div>
+                  <Title level={5} style={{ margin: 0, color: BRAND_COLORS.primary }}>3. Select Proper Category</Title>
+                  <Paragraph style={{ margin: 0, fontSize: '13px', color: '#595959' }}>
+                    Categoriz accurately
+                  </Paragraph>
+                </div>
+                <div>
+                  <Title level={5} style={{ margin: 0, color: BRAND_COLORS.primary }}>4. First Contact Resolution (FCR)</Title>
+                  <Paragraph style={{ margin: 0, fontSize: '13px', color: '#595959' }}>
+                    If the complaint is fully resolved at the branch, check the FCR box, provide resolution notes, and close the case.
 
-            <Form.Item name="complaintCategory" label="Category" rules={[{ required: true }]}>
-              <Select placeholder="Select category">
-                <Select.Option value="financial">Financial - Banking Services</Select.Option>
-                <Select.Option value="atm">ATM - Card Services</Select.Option>
-                <Select.Option value="technical">Technical - System Issues</Select.Option>
-                <Select.Option value="account">Account - Management</Select.Option>
-                <Select.Option value="loan">Loan - Credit Services</Select.Option>
-                <Select.Option value="branch">Branch - Customer Service</Select.Option>
-                <Select.Option value="mobile">Mobile - App/Digital Banking</Select.Option>
-                <Select.Option value="fraud">Fraud - Security Issues</Select.Option>
-                <Select.Option value="employee_behaviour">Employee Behaviour - Staff Related</Select.Option>
-                <Select.Option value="internet_banking">Internet Banking</Select.Option>
-                <Select.Option value="super_app">Super App</Select.Option>
-                <Select.Option value="general">General - Other Issues</Select.Option>
-              </Select>
-            </Form.Item>
+                  </Paragraph>
+                </div>
 
-            <Form.Item name="channel" label="Channel" rules={[{ required: true, message: 'Please select a channel' }]}>
-              <Select placeholder="Select channel">
-                <Select.Option value="branch">Walk-In (Branch)</Select.Option>
-                <Select.Option value="phone">Phone Call</Select.Option>
-                <Select.Option value="email">Email</Select.Option>
-                <Select.Option value="letter">Letter / Written</Select.Option>
-                <Select.OptGroup label="Social Media">
-                  <Select.Option value="facebook">Facebook</Select.Option>
-                  <Select.Option value="telegram">Telegram</Select.Option>
-                  <Select.Option value="twitter">Twitter / X</Select.Option>
-                  <Select.Option value="instagram">Instagram</Select.Option>
-                  <Select.Option value="whatsapp">WhatsApp</Select.Option>
-                  <Select.Option value="linkedin">LinkedIn</Select.Option>
-                  <Select.Option value="youtube">YouTube</Select.Option>
-                  <Select.Option value="tiktok">TikTok</Select.Option>
-                </Select.OptGroup>
-                <Select.Option value="web">Web Portal</Select.Option>
-              </Select>
-            </Form.Item>
-
-            <Form.Item name="complaintDescription" label="Complaint Description" rules={[{ required: true }]}>
-              <Input.TextArea rows={4} placeholder="Detailed description of the complaint" />
-            </Form.Item>
-
-            <div style={{ padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px', marginBottom: '24px' }}>
-              <Form.Item name="isFCR" valuePropName="checked" style={{ marginBottom: staffFormData.isFCR ? '16px' : 0 }}>
-                <Checkbox>
-                  <strong>Resolved at first contact (FCR)?</strong>
-                </Checkbox>
-              </Form.Item>
-
-              {staffFormData.isFCR && (
-                <Form.Item name="fcrComments" label="Resolution Comments" rules={[{ required: true, message: 'Please provide resolution details' }]}>
-                  <Input.TextArea rows={3} placeholder="How was this resolved?" />
-                </Form.Item>
-              )}
-            </div>
-          </Form>
-        </Modal>
+              </Space>
+            </Card>
+          </Col>
+        </Row>
       </div>
     </DashboardLayout>
   );

@@ -55,30 +55,57 @@ public class GenerateTicketDelegate implements JavaDelegate {
         String email = customer != null ? (String) customer.get("email") : null;
         String phone = customer != null ? (String) customer.get("phone") : null;
         
-        // Professional email message
-        String emailMessage = String.format(
-            "Dear %s,\n\n" +
-            "Thank you for contacting us. Your complaint has been registered successfully.\n\n" +
-            "Ticket Number: %s\n" +
-            "Registration Date: %s\n\n" +
-            "We have received your complaint and our team will review it shortly. You can follow up on your complaint status using the ticket number provided above.\n\n" +
-            "For any urgent inquiries, please contact our customer service hotline.\n\n" +
-            "Best regards,\n" +
-            "Customer Service Team\n" +
-            "Complaint Management System",
-            customerName,
-            ticket,
-            LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"))
-        );
-        
-        // SMS message (shorter format)
-        String smsMessage = String.format(
-            "Your complaint has been registered with ticket %s. We will contact you shortly. For inquiries, mention: %s",
-            ticket,
-            ticket
-        );
-        
-        String subject = "Complaint Registered - Ticket #" + ticket;
+        String preferredLanguage = (String) execution.getVariable("preferredLanguage");
+        if (preferredLanguage == null && customer != null) {
+            preferredLanguage = (String) customer.getOrDefault("preferredLanguage", "english");
+        }
+
+        String emailMessage;
+        String smsMessage;
+        String subject;
+
+        if ("amharic".equalsIgnoreCase(preferredLanguage)) {
+            subject = "ቅሬታዎ ተመዝግቧል - የቲኬት ቁጥር #" + ticket;
+            emailMessage = String.format(
+                "ውድ %s፣\n\n" +
+                "ቅሬታዎ በተሳካ ሁኔታ ተመዝግቧል።\n\n" +
+                "የቅሬታ ቁጥር: %s\n" +
+                "የተመዘገበበት ቀን: %s\n\n" +
+                "ቅሬታዎን ደርሶናል፤ ቡድናችን በቅርቡ ይመረምረዋል። በተሰጠው የቅሬታ ቁጥር ቅሬታዎን መከታተል ይችላሉ።\n\n" +
+                "ለማንኛውም አስቸኳይ ጥያቄ እባክዎን በደንበኞች አገልግሎት የስልክ መስመራችን ያነጋግሩን።\n\n" +
+                "በመልካም አክብሮት፣\n" +
+                "የደንበኞች አገልግሎት ክፍል\n" +
+                "ዳሽን ባንክ",
+                customerName,
+                ticket,
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+            );
+            smsMessage = String.format(
+                "ቅሬታዎ በቁጥር %s በተሳካ ሁኔታ ተመዝግቧል። ለማንኛውም ጥያቄ ቁጥሩን ይጠቅሱ።",
+                ticket
+            );
+        } else {
+            subject = "Complaint Registered - Ticket #" + ticket;
+            emailMessage = String.format(
+                "Dear %s,\n\n" +
+                "Thank you for contacting us. Your complaint has been registered successfully.\n\n" +
+                "Ticket Number: %s\n" +
+                "Registration Date: %s\n\n" +
+                "We have received your complaint and our team will review it shortly. You can follow up on your complaint status using the ticket number provided above.\n\n" +
+                "For any urgent inquiries, please contact our customer service hotline.\n\n" +
+                "Best regards,\n" +
+                "Customer Service Team\n" +
+                "Complaint Management System",
+                customerName,
+                ticket,
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"))
+            );
+            smsMessage = String.format(
+                "Your complaint has been registered with ticket %s. We will contact you shortly. For inquiries, mention: %s",
+                ticket,
+                ticket
+            );
+        }
 
         if (email != null) {
             notificationService.sendEmail(email, subject, emailMessage);
